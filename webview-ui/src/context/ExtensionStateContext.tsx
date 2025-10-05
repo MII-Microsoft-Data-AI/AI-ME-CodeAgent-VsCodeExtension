@@ -37,6 +37,7 @@ export interface ExtensionStateContextType extends ExtensionState {
 	requestyModels: Record<string, ModelInfo>
 	groqModels: Record<string, ModelInfo>
 	basetenModels: Record<string, ModelInfo>
+	codeagentModels: Record<string, ModelInfo>
 	huggingFaceModels: Record<string, ModelInfo>
 	vercelAiGatewayModels: Record<string, ModelInfo>
 	mcpServers: McpServer[]
@@ -64,6 +65,7 @@ export interface ExtensionStateContextType extends ExtensionState {
 	setRequestyModels: (value: Record<string, ModelInfo>) => void
 	setGroqModels: (value: Record<string, ModelInfo>) => void
 	setBasetenModels: (value: Record<string, ModelInfo>) => void
+	setCodeAgentModels: (value: Record<string, ModelInfo>) => void
 	setHuggingFaceModels: (value: Record<string, ModelInfo>) => void
 	setVercelAiGatewayModels: (value: Record<string, ModelInfo>) => void
 	setGlobalClineRulesToggles: (toggles: Record<string, boolean>) => void
@@ -237,6 +239,7 @@ export const ExtensionStateContextProvider: React.FC<{
 	const [basetenModelsState, setBasetenModels] = useState<Record<string, ModelInfo>>({
 		[basetenDefaultModelId]: basetenModels[basetenDefaultModelId],
 	})
+	const [codeagentModels, setCodeAgentModels] = useState<Record<string, ModelInfo>>({})
 	const [huggingFaceModels, setHuggingFaceModels] = useState<Record<string, ModelInfo>>({})
 	const [vercelAiGatewayModels, setVercelAiGatewayModels] = useState<Record<string, ModelInfo>>({
 		[vercelAiGatewayDefaultModelId]: vercelAiGatewayDefaultModelInfo,
@@ -625,6 +628,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		requestyModels,
 		groqModels: groqModelsState,
 		basetenModels: basetenModelsState,
+		codeagentModels,
 		huggingFaceModels,
 		vercelAiGatewayModels,
 		mcpServers,
@@ -671,6 +675,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		setRequestyModels: (models: Record<string, ModelInfo>) => setRequestyModels(models),
 		setGroqModels: (models: Record<string, ModelInfo>) => setGroqModels(models),
 		setBasetenModels: (models: Record<string, ModelInfo>) => setBasetenModels(models),
+		setCodeAgentModels: (models: Record<string, ModelInfo>) => setCodeAgentModels(models),
 		setHuggingFaceModels: (models: Record<string, ModelInfo>) => setHuggingFaceModels(models),
 		setVercelAiGatewayModels: (models: Record<string, ModelInfo>) => setVercelAiGatewayModels(models),
 		setMcpMarketplaceCatalog: (catalog: McpMarketplaceCatalog) => setMcpMarketplaceCatalog(catalog),

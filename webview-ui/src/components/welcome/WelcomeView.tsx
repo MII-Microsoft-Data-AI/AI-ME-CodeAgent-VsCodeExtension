@@ -48,16 +48,13 @@ const WelcomeView = memo(() => {
 					a browser, and execute terminal commands <i>(with your permission, of course)</i>. I can even use MCP to
 					create new tools and extend my own capabilities.
 				</p>
-
 				<p className="text-[var(--vscode-descriptionForeground)]">
-					Sign up for an account to get started for free, or use an API key that provides access to models like Claude
-					Sonnet.
-				</p>
-
+					Sign up for an account to get started for free, or use your own API provider like Claude Sonnet, OpenAI,
+					CodeAgent, or any other compatible backend.
+				</p>{" "}
 				<VSCodeButton appearance="primary" className="w-full mt-1" onClick={handleLogin}>
 					Get Started for Free
 				</VSCodeButton>
-
 				{!showApiOptions && (
 					<VSCodeButton
 						appearance="secondary"
@@ -66,7 +63,6 @@ const WelcomeView = memo(() => {
 						Use your own API key
 					</VSCodeButton>
 				)}
-
 				<div className="mt-4.5">
 					{showApiOptions && (
 						<div>
