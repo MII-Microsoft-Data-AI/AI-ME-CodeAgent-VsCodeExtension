@@ -32,6 +32,8 @@ service ModelsService {
   rpc refreshGroqModels(EmptyRequest) returns (OpenRouterCompatibleModelInfo);
   // Refreshes and returns Baseten models
   rpc refreshBasetenModels(EmptyRequest) returns (OpenRouterCompatibleModelInfo);
+  // Refreshes and returns CodeAgent models
+  rpc refreshCodeAgentModels(EmptyRequest) returns (OpenRouterCompatibleModelInfo);
   // Fetches available models from SAP AI Core
   rpc getSapAiCoreModels(SapAiCoreModelsRequest) returns (SapAiCoreModelsResponse);
   // Fetches available models from OCA
@@ -210,6 +212,7 @@ enum ApiProvider {
   QWEN_CODE = 33;
   DIFY = 34;
   OCA = 35;
+  CODEAGENT = 36;
 }
 
 // Model info for OpenAI-compatible models
@@ -325,6 +328,8 @@ message ModelsApiConfiguration {
   optional string oca_base_url = 73;
   optional string oca_api_key = 74;
   optional string oca_refresh_token = 75;
+  optional string codeagent_api_key = 76;
+  optional string codeagent_base_url = 77;
 
   // Plan mode configurations
   optional ApiProvider plan_mode_api_provider = 100;
@@ -360,6 +365,8 @@ message ModelsApiConfiguration {
   optional OpenRouterModelInfo plan_mode_vercel_ai_gateway_model_info = 130;
   optional string plan_mode_oca_model_id = 131;
   optional OcaModelInfo plan_mode_oca_model_info = 132;
+  optional string plan_mode_codeagent_model_id = 133;
+  optional OpenRouterModelInfo plan_mode_codeagent_model_info = 134;
 
 
   // Act mode configurations
@@ -396,4 +403,6 @@ message ModelsApiConfiguration {
   optional OpenRouterModelInfo act_mode_vercel_ai_gateway_model_info = 230;
   optional string act_mode_oca_model_id = 231;
   optional OcaModelInfo act_mode_oca_model_info = 232;
+  optional string act_mode_codeagent_model_id = 233;
+  optional OpenRouterModelInfo act_mode_codeagent_model_info = 234;
 }

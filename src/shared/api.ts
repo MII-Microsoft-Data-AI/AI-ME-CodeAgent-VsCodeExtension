@@ -37,6 +37,7 @@ export type ApiProvider =
 	| "vercel-ai-gateway"
 	| "zai"
 	| "oca"
+	| "codeagent"
 
 export interface ApiHandlerSecrets {
 	apiKey?: string // anthropic
@@ -75,6 +76,7 @@ export interface ApiHandlerSecrets {
 	basetenApiKey?: string
 	vercelAiGatewayApiKey?: string
 	difyApiKey?: string
+	codeagentApiKey?: string
 }
 
 export interface ApiHandlerOptions {
@@ -119,6 +121,7 @@ export interface ApiHandlerOptions {
 	zaiApiLine?: string
 	onRetryAttempt?: (attempt: number, maxRetries: number, delay: number, error: any) => void
 	ocaBaseUrl?: string
+	codeagentBaseUrl?: string
 
 	// Plan mode configurations
 	planModeApiModelId?: string
@@ -153,6 +156,8 @@ export interface ApiHandlerOptions {
 	planModeVercelAiGatewayModelInfo?: ModelInfo
 	planModeOcaModelId?: string
 	planModeOcaModelInfo?: OcaModelInfo
+	planModeCodeagentModelId?: string
+	planModeCodeagentModelInfo?: ModelInfo
 	// Act mode configurations
 
 	// Act mode configurations
@@ -188,6 +193,8 @@ export interface ApiHandlerOptions {
 	actModeVercelAiGatewayModelInfo?: ModelInfo
 	actModeOcaModelId?: string
 	actModeOcaModelInfo?: OcaModelInfo
+	actModeCodeagentModelId?: string
+	actModeCodeagentModelInfo?: ModelInfo
 }
 
 export type ApiConfiguration = ApiHandlerOptions &
