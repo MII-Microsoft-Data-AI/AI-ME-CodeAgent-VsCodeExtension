@@ -1,10 +1,10 @@
 import { EmptyRequest } from "@shared/proto/cline/common"
-import { OpenRouterCompatibleModelInfo } from "@shared/proto/cline/models"
+import { CodeAgentCompatibleModelInfo } from "@shared/proto/cline/models"
 import { getRequestRegistry, StreamingResponseHandler } from "../grpc-handler"
 import { Controller } from "../index"
 
 // Keep track of active CodeAgent models subscriptions
-const activeCodeAgentModelsSubscriptions = new Set<StreamingResponseHandler<OpenRouterCompatibleModelInfo>>()
+const activeCodeAgentModelsSubscriptions = new Set<StreamingResponseHandler<CodeAgentCompatibleModelInfo>>()
 
 /**
  * Subscribe to CodeAgent models events
@@ -16,7 +16,7 @@ const activeCodeAgentModelsSubscriptions = new Set<StreamingResponseHandler<Open
 export async function subscribeToCodeAgentModels(
 	_controller: Controller,
 	_request: EmptyRequest,
-	responseStream: StreamingResponseHandler<OpenRouterCompatibleModelInfo>,
+	responseStream: StreamingResponseHandler<CodeAgentCompatibleModelInfo>,
 	requestId?: string,
 ): Promise<void> {
 	console.log("[DEBUG] set up CodeAgent models subscription")
@@ -40,7 +40,7 @@ export async function subscribeToCodeAgentModels(
  * Send a CodeAgent models event to all active subscribers
  * @param models The CodeAgent models to send
  */
-export async function sendCodeAgentModelsEvent(models: OpenRouterCompatibleModelInfo): Promise<void> {
+export async function sendCodeAgentModelsEvent(models: CodeAgentCompatibleModelInfo): Promise<void> {
 	// Send the event to all active subscribers
 	const promises = Array.from(activeCodeAgentModelsSubscriptions).map(async (responseStream) => {
 		try {

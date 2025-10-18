@@ -7,7 +7,7 @@ import { DEFAULT_FOCUS_CHAIN_SETTINGS } from "@shared/FocusChainSettings"
 import { DEFAULT_MCP_DISPLAY_MODE } from "@shared/McpDisplayMode"
 import type { UserInfo } from "@shared/proto/cline/account"
 import { EmptyRequest } from "@shared/proto/cline/common"
-import type { OpenRouterCompatibleModelInfo } from "@shared/proto/cline/models"
+import type { CodeAgentCompatibleModelInfo, OpenRouterCompatibleModelInfo } from "@shared/proto/cline/models"
 import { type TerminalProfile } from "@shared/proto/cline/state"
 import { convertProtoToClineMessage } from "@shared/proto-conversions/cline-message"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
@@ -495,7 +495,7 @@ export const ExtensionStateContextProvider: React.FC<{
 
 		// Subscribe to CodeAgent models updates
 		codeagentModelsUnsubscribeRef.current = ModelsServiceClient.subscribeToCodeAgentModels(EmptyRequest.create({}), {
-			onResponse: (response: OpenRouterCompatibleModelInfo) => {
+			onResponse: (response: CodeAgentCompatibleModelInfo) => {
 				console.log("[DEBUG] Received CodeAgent models update from gRPC stream")
 				setCodeAgentModels((response.models as unknown as Record<string, CodeAgentModel>) || {})
 			},
@@ -648,7 +648,7 @@ export const ExtensionStateContextProvider: React.FC<{
 
 	const refreshCodeAgentModels = useCallback(() => {
 		ModelsServiceClient.refreshCodeAgentModels(EmptyRequest.create({}))
-			.then((response: OpenRouterCompatibleModelInfo) => {
+			.then((response: CodeAgentCompatibleModelInfo) => {
 				// Cast the response to CodeAgentModel records (backend returns CodeAgent-specific data)
 				setCodeAgentModels((response.models as unknown as Record<string, CodeAgentModel>) || {})
 			})

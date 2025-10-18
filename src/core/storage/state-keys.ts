@@ -1,4 +1,4 @@
-import { ApiProvider, ModelInfo, type OcaModelInfo } from "@shared/api"
+import { ApiProvider, CodeAgentModelInfo, ModelInfo, type OcaModelInfo } from "@shared/api"
 import { FocusChainSettings } from "@shared/FocusChainSettings"
 import { LanguageModelChatSelector } from "vscode"
 import { WorkspaceRoot } from "@/core/workspace/WorkspaceRoot"
@@ -137,7 +137,7 @@ export interface Settings {
 	planModeOcaModelId: string | undefined
 	planModeOcaModelInfo: OcaModelInfo | undefined
 	planModeCodeagentModelId: string | undefined
-	planModeCodeagentModelInfo: ModelInfo | undefined
+	planModeCodeagentModelInfo: CodeAgentModelInfo | undefined
 	// Act mode configurations
 	actModeApiProvider: ApiProvider
 	actModeApiModelId: string | undefined
@@ -175,7 +175,7 @@ export interface Settings {
 	actModeOcaModelId: string | undefined
 	actModeOcaModelInfo: OcaModelInfo | undefined
 	actModeCodeagentModelId: string | undefined
-	actModeCodeagentModelInfo: ModelInfo | undefined
+	actModeCodeagentModelInfo: CodeAgentModelInfo | undefined
 }
 
 export interface Secrets {

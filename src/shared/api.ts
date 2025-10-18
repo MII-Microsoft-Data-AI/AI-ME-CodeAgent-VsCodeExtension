@@ -157,7 +157,7 @@ export interface ApiHandlerOptions {
 	planModeOcaModelId?: string
 	planModeOcaModelInfo?: OcaModelInfo
 	planModeCodeagentModelId?: string
-	planModeCodeagentModelInfo?: ModelInfo
+	planModeCodeagentModelInfo?: CodeAgentModelInfo
 	// Act mode configurations
 
 	// Act mode configurations
@@ -194,7 +194,7 @@ export interface ApiHandlerOptions {
 	actModeOcaModelId?: string
 	actModeOcaModelInfo?: OcaModelInfo
 	actModeCodeagentModelId?: string
-	actModeCodeagentModelInfo?: ModelInfo
+	actModeCodeagentModelInfo?: CodeAgentModelInfo
 }
 
 export type ApiConfiguration = ApiHandlerOptions &
@@ -247,6 +247,24 @@ export interface OcaModelInfo extends OpenAiCompatibleModelInfo {
 	surveyContent?: string
 }
 
+export interface CodeAgentModelInfo {
+	id: string // CosmosDB required field (same as modelId)
+	modelId: string
+	displayName: string
+	endpoint: string
+	apiKey?: string // Encrypted
+	deploymentName: string
+	status: "ACTIVE" | "INACTIVE"
+	apiVersion: string
+	inputTokensPer1m: number
+	outputTokensPer1m: number
+	cachedInputTokensPer1m: number
+	createdAt: string
+	updatedAt: string
+	supportImage: boolean
+	description: string
+}
+
 export interface CodeAgentModel {
 	id: string // CosmosDB required field (same as modelId)
 	modelId: string
@@ -257,9 +275,9 @@ export interface CodeAgentModel {
 	status: "ACTIVE" | "INACTIVE"
 	apiVersion: string
 	pricing: {
-		inputTokensPer1k: number
-		outputTokensPer1k: number
-		cachedInputTokensPer1k: number
+		inputTokensPer1m: number
+		outputTokensPer1m: number
+		cachedInputTokensPer1m: number
 	}
 	createdAt: string
 	updatedAt: string

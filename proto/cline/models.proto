@@ -27,7 +27,7 @@ service ModelsService {
   // Subscribe to OpenRouter models updates
   rpc subscribeToOpenRouterModels(EmptyRequest) returns (stream OpenRouterCompatibleModelInfo);
   // Subscribe to CodeAgent models updates
-  rpc subscribeToCodeAgentModels(EmptyRequest) returns (stream OpenRouterCompatibleModelInfo);
+  rpc subscribeToCodeAgentModels(EmptyRequest) returns (stream CodeAgentCompatibleModelInfo);
   // Updates API configuration
   rpc updateApiConfigurationProto(UpdateApiConfigurationRequest) returns (Empty);
   // Refreshes and returns Groq models
@@ -35,7 +35,7 @@ service ModelsService {
   // Refreshes and returns Baseten models
   rpc refreshBasetenModels(EmptyRequest) returns (OpenRouterCompatibleModelInfo);
   // Refreshes and returns CodeAgent models
-  rpc refreshCodeAgentModels(EmptyRequest) returns (OpenRouterCompatibleModelInfo);
+  rpc refreshCodeAgentModels(EmptyRequest) returns (CodeAgentCompatibleModelInfo);
   // Fetches available models from SAP AI Core
   rpc getSapAiCoreModels(SapAiCoreModelsRequest) returns (SapAiCoreModelsResponse);
   // Fetches available models from OCA
@@ -93,9 +93,34 @@ message OpenRouterModelInfo {
   repeated ModelTier tiers = 12;
 }
 
+// Model info for CodeAgent models with custom schema
+message CodeAgentModelInfo {
+  string id = 1;  // CosmosDB required field (same as modelId)
+  string model_id = 2;
+  string display_name = 3;
+  string endpoint = 4;
+  optional string api_key = 5;  // Encrypted
+  string deployment_name = 6;
+  string status = 7;  // "ACTIVE" or "INACTIVE"
+  string api_version = 8;
+  // Pricing information
+  double input_tokens_per_1m = 9;
+  double output_tokens_per_1m = 10;
+  double cached_input_tokens_per_1m = 11;
+  string created_at = 12;
+  string updated_at = 13;
+  bool support_image = 14;
+  string description = 15;
+}
+
 // Shared response message for model information
 message OpenRouterCompatibleModelInfo {
   map<string, OpenRouterModelInfo> models = 1;
+}
+
+// Shared response message for CodeAgent model information
+message CodeAgentCompatibleModelInfo {
+  map<string, CodeAgentModelInfo> models = 1;
 }
 
 // Request for fetching OpenAI models
@@ -368,7 +393,7 @@ message ModelsApiConfiguration {
   optional string plan_mode_oca_model_id = 131;
   optional OcaModelInfo plan_mode_oca_model_info = 132;
   optional string plan_mode_codeagent_model_id = 133;
-  optional OpenRouterModelInfo plan_mode_codeagent_model_info = 134;
+  optional CodeAgentModelInfo plan_mode_codeagent_model_info = 134;
 
 
   // Act mode configurations
@@ -406,5 +431,5 @@ message ModelsApiConfiguration {
   optional string act_mode_oca_model_id = 231;
   optional OcaModelInfo act_mode_oca_model_info = 232;
   optional string act_mode_codeagent_model_id = 233;
-  optional OpenRouterModelInfo act_mode_codeagent_model_info = 234;
+  optional CodeAgentModelInfo act_mode_codeagent_model_info = 234;
 }

@@ -55,6 +55,8 @@ const CodeAgentModelPicker: React.FC<CodeAgentModelPickerProps> = ({ isPopup, cu
 
 		setSearchTerm(newModelId)
 
+		console.log("CodeAgentModelPicker - handleModelChange:", newModelId)
+
 		handleModeFieldsChange(
 			{
 				codeagentModelId: { plan: "planModeCodeagentModelId", act: "actModeCodeagentModelId" },
@@ -103,7 +105,7 @@ const CodeAgentModelPicker: React.FC<CodeAgentModelPickerProps> = ({ isPopup, cu
 	const searchableItems = useMemo(() => {
 		return modelIds.map((id) => ({
 			id,
-			html: id,
+			html: codeagentModels[id].displayName,
 		}))
 	}, [modelIds])
 
@@ -208,7 +210,7 @@ const CodeAgentModelPicker: React.FC<CodeAgentModelPickerProps> = ({ isPopup, cu
 							zIndex: OPENROUTER_MODEL_PICKER_Z_INDEX,
 							position: "relative",
 						}}
-						value={searchTerm}>
+						value={codeagentModels[searchTerm] ? codeagentModels[searchTerm].displayName : searchTerm}>
 						{searchTerm && (
 							<div
 								aria-label="Clear search"
@@ -230,6 +232,7 @@ const CodeAgentModelPicker: React.FC<CodeAgentModelPickerProps> = ({ isPopup, cu
 					{isDropdownVisible && (
 						<DropdownList ref={dropdownListRef}>
 							{modelSearchResults.map((item, index) => {
+								console.log("Rendering model item:", item)
 								const isFavorite = (favoritedModelIds || []).includes(item.id)
 								return (
 									<DropdownItem

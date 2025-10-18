@@ -1,6 +1,6 @@
 import { ensureCacheDirectoryExists, GlobalFileNames } from "@core/storage/disk"
 import { EmptyRequest } from "@shared/proto/cline/common"
-import { OpenRouterCompatibleModelInfo, OpenRouterModelInfo } from "@shared/proto/cline/models"
+import { CodeAgentCompatibleModelInfo, CodeAgentModelInfo } from "@shared/proto/cline/models"
 import { fileExistsAtPath } from "@utils/fs"
 import axios from "axios"
 import fs from "fs/promises"
@@ -11,7 +11,7 @@ import { Controller } from ".."
 /**
  * Reads cached CodeAgent models from disk
  */
-async function readCodeAgentModels(): Promise<Record<string, OpenRouterModelInfo> | null> {
+async function readCodeAgentModels(): Promise<Record<string, CodeAgentModelInfo> | null> {
 	try {
 		const codeagentModelsFilePath = path.join(await ensureCacheDirectoryExists(), GlobalFileNames.codeagentModels)
 		if (await fileExistsAtPath(codeagentModelsFilePath)) {
@@ -33,7 +33,7 @@ async function readCodeAgentModels(): Promise<Record<string, OpenRouterModelInfo
 export async function refreshCodeAgentModels(
 	controller: Controller,
 	_request: EmptyRequest,
-): Promise<OpenRouterCompatibleModelInfo> {
+): Promise<CodeAgentCompatibleModelInfo> {
 	console.log("=== refreshCodeAgentModels called ===")
 	const codeagentModelsFilePath = path.join(await ensureCacheDirectoryExists(), GlobalFileNames.codeagentModels)
 
@@ -42,7 +42,7 @@ export async function refreshCodeAgentModels(
 	const codeagentApiKey = apiConfiguration?.codeagentApiKey
 	const codeagentBaseUrl = apiConfiguration?.codeagentBaseUrl
 
-	const models: Record<string, Partial<OpenRouterModelInfo>> = {}
+	const models: Record<string, CodeAgentModelInfo> = {}
 
 	try {
 		if (!codeagentApiKey || !codeagentBaseUrl) {
@@ -69,6 +69,9 @@ export async function refreshCodeAgentModels(
 
 			Logger.log("Fetching CodeAgent models from API")
 
+			Logger.log(`Using CodeAgent Base URL: ${cleanBaseUrl}`)
+			Logger.log(`Using CodeAgent API Key: ${cleanApiKey.substring(0, 4)}****`)
+
 			// Construct the models endpoint URL - use /api/models endpoint
 			const modelsUrl = `${cleanBaseUrl}/api/models`
 
@@ -82,35 +85,39 @@ export async function refreshCodeAgentModels(
 			})
 
 			Logger.log(`CodeAgent models API response status: ${response.status}`)
+			Logger.log(`CodeAgent models API response status: ${response.data}`)
 
-			if (response.data?.data) {
-				const rawModels = response.data.data
+			if (response.data) {
+				const rawModels = response.data
 
 				for (const rawModel of rawModels) {
-					// Basic validation - ensure the model has an id
-					if (!rawModel.id) {
-						continue
-					}
-
-					// Extract model information from the response
-					// Adapt these fields based on your CodeAgent backend's actual response structure
-					const modelInfo: Partial<OpenRouterModelInfo> = {
-						maxTokens: rawModel.max_tokens || rawModel.max_completion_tokens || 8192,
-						contextWindow: rawModel.context_window || rawModel.context_length || 128000,
-						supportsImages: rawModel.supports_images || rawModel.vision || false,
-						supportsPromptCache: rawModel.supports_prompt_cache || false,
-						inputPrice: rawModel.input_price || rawModel.pricing?.input || 0,
-						outputPrice: rawModel.output_price || rawModel.pricing?.output || 0,
-						cacheWritesPrice: rawModel.cache_writes_price || 0,
-						cacheReadsPrice: rawModel.cache_reads_price || 0,
-						description: rawModel.description || `${rawModel.id} - CodeAgent model`,
+					// Map CodeAgent backend response to CodeAgentModelInfo schema
+					const modelInfo: CodeAgentModelInfo = {
+						id: rawModel.id,
+						modelId: rawModel.modelId || rawModel.id,
+						displayName: rawModel.displayName || rawModel.display_name || rawModel.id,
+						endpoint: rawModel.endpoint || "",
+						apiKey: rawModel.apiKey || rawModel.api_key,
+						deploymentName: rawModel.deploymentName || rawModel.deployment_name || "",
+						status: rawModel.status || "ACTIVE",
+						apiVersion: rawModel.apiVersion || rawModel.api_version || "2024-02-01",
+						inputTokensPer1m: rawModel.pricing?.inputTokensPer1m || rawModel.pricing?.input_tokens_per_1m || 0,
+						outputTokensPer1m: rawModel.pricing?.outputTokensPer1m || rawModel.pricing?.output_tokens_per_1m || 0,
+						cachedInputTokensPer1m:
+							rawModel.pricing?.cachedInputTokensPer1m || rawModel.pricing?.cached_input_tokens_per_1m || 0,
+						createdAt: rawModel.createdAt || rawModel.created_at || new Date().toISOString(),
+						updatedAt: rawModel.updatedAt || rawModel.updated_at || new Date().toISOString(),
+						description: rawModel.description || "",
+						supportImage: rawModel.supportImage || false,
 					}
 
 					models[rawModel.id] = modelInfo
 				}
 
-				await fs.writeFile(codeagentModelsFilePath, JSON.stringify(rawModels))
-				console.log("CodeAgent models fetched and saved:", Object.keys(rawModels))
+				Logger.log(`Saving ${Object.keys(models).length} CodeAgent models to cache`)
+
+				await fs.writeFile(codeagentModelsFilePath, JSON.stringify(models))
+				console.log("CodeAgent models fetched and saved:", Object.keys(models))
 			} else {
 				console.error("Invalid response from CodeAgent API")
 			}
@@ -152,25 +159,5 @@ export async function refreshCodeAgentModels(
 		}
 	}
 
-	// Convert the Record<string, Partial<OpenRouterModelInfo>> to Record<string, OpenRouterModelInfo>
-	// by filling in any missing required fields with defaults
-	const typedModels: Record<string, OpenRouterModelInfo> = {}
-	for (const [key, model] of Object.entries(models)) {
-		typedModels[key] = {
-			maxTokens: model.maxTokens,
-			contextWindow: model.contextWindow,
-			supportsImages: model.supportsImages,
-			supportsPromptCache: model.supportsPromptCache ?? false,
-			inputPrice: model.inputPrice,
-			outputPrice: model.outputPrice,
-			cacheWritesPrice: model.cacheWritesPrice,
-			cacheReadsPrice: model.cacheReadsPrice,
-			description: model.description,
-			thinkingConfig: model.thinkingConfig,
-			supportsGlobalEndpoint: model.supportsGlobalEndpoint,
-			tiers: model.tiers || [],
-		}
-	}
-
-	return OpenRouterCompatibleModelInfo.create({ models: typedModels })
+	return CodeAgentCompatibleModelInfo.create({ models })
 }

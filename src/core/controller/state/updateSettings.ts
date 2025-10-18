@@ -7,7 +7,7 @@ import {
 	OpenaiReasoningEffort as ProtoOpenaiReasoningEffort,
 	UpdateSettingsRequest,
 } from "@shared/proto/cline/state"
-import { convertProtoToApiProvider } from "@shared/proto-conversions/models/api-configuration-conversion"
+import { convertProtoToApiConfiguration } from "@shared/proto-conversions/models/api-configuration-conversion"
 import { OpenaiReasoningEffort } from "@shared/storage/types"
 import { TelemetrySetting } from "@shared/TelemetrySetting"
 import { HostProvider } from "@/hosts/host-provider"
@@ -29,16 +29,8 @@ export async function updateSettings(controller: Controller, request: UpdateSett
 		if (request.apiConfiguration) {
 			const protoApiConfiguration = request.apiConfiguration
 
-			const convertedApiConfigurationFromProto = {
-				...protoApiConfiguration,
-				// Convert proto ApiProvider enums to native string types
-				planModeApiProvider: protoApiConfiguration.planModeApiProvider
-					? convertProtoToApiProvider(protoApiConfiguration.planModeApiProvider)
-					: undefined,
-				actModeApiProvider: protoApiConfiguration.actModeApiProvider
-					? convertProtoToApiProvider(protoApiConfiguration.actModeApiProvider)
-					: undefined,
-			}
+			// Use the proper conversion function to convert all proto types to application types
+			const convertedApiConfigurationFromProto = convertProtoToApiConfiguration(protoApiConfiguration)
 
 			controller.stateManager.setApiConfiguration(convertedApiConfigurationFromProto)
 

@@ -255,7 +255,7 @@ message ApiConfiguration {
   optional string plan_mode_oca_model_id = 124;
   optional OcaModelInfo plan_mode_oca_model_info = 125;
   optional string plan_mode_codeagent_model_id = 126;
-  optional OpenRouterModelInfo plan_mode_codeagent_model_info = 127;
+  optional CodeAgentModelInfo plan_mode_codeagent_model_info = 127;
   
   // Act mode configurations
   optional ApiProvider act_mode_api_provider = 200;
@@ -285,7 +285,7 @@ message ApiConfiguration {
   optional string act_mode_oca_model_id = 224;
   optional OcaModelInfo act_mode_oca_model_info = 225;
   optional string act_mode_codeagent_model_id = 226;
-  optional OpenRouterModelInfo act_mode_codeagent_model_info = 227;
+  optional CodeAgentModelInfo act_mode_codeagent_model_info = 227;
 
   // Extension fields for Bedrock Api Keys
   optional string aws_authentication = 301;

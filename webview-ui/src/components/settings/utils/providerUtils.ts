@@ -367,14 +367,13 @@ export function normalizeApiConfiguration(
 			return {
 				selectedProvider: provider,
 				selectedModelId: codeagentModelId || "",
-				selectedModelInfo: codeagentModelInfo || {
-					maxTokens: 8192,
-					contextWindow: 128000,
-					supportsImages: true,
-					supportsPromptCache: false,
-					inputPrice: 0,
-					outputPrice: 0,
-					description: "CodeAgent model - configure via backend",
+				selectedModelInfo: {
+					description: codeagentModelInfo?.displayName || "CodeAgent model",
+					supportsPromptCache: true,
+					cacheReadsPrice: codeagentModelInfo?.cachedInputTokensPer1m,
+					inputPrice: codeagentModelInfo?.inputTokensPer1m,
+					outputPrice: codeagentModelInfo?.outputTokensPer1m,
+					supportsImages: codeagentModelInfo?.supportImage || false,
 				},
 			}
 		default:
