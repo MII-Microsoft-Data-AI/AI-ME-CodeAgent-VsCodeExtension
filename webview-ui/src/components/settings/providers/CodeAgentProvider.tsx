@@ -80,9 +80,7 @@ export const CodeAgentProvider = ({ showModelOptions, isPopup, currentMode }: Op
 			<p>
 				<span style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }}>
 					The CodeAgent API key and base URL are used to connect to your CodeAgent-compatible backend. Make sure to
-					provide valid credentials to access the models.
-					{apiConfiguration?.codeagentBaseUrl || ""}
-					{apiConfiguration?.codeagentApiKey ? "" : " (No API Key Set)"}
+					provide valid credentials to access the models.`
 				</span>
 			</p>
 

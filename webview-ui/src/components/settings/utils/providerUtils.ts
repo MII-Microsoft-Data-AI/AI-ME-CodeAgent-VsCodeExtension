@@ -377,7 +377,19 @@ export function normalizeApiConfiguration(
 				},
 			}
 		default:
-			return getProviderData(anthropicModels, anthropicDefaultModelId)
+			return {
+				selectedProvider: "codeagent",
+				selectedModelId: codeagentModelId || "",
+				selectedModelInfo: {
+					description: codeagentModelInfo?.displayName || "CodeAgent model",
+					supportsPromptCache: true,
+					cacheReadsPrice: codeagentModelInfo?.cachedInputTokensPer1m,
+					inputPrice: codeagentModelInfo?.inputTokensPer1m,
+					outputPrice: codeagentModelInfo?.outputTokensPer1m,
+					supportsImages: codeagentModelInfo?.supportImage || false,
+				},
+			}
+		// return getProviderData(anthropicModels, anthropicDefaultModelId)
 	}
 }
 
