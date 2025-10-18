@@ -26,6 +26,8 @@ service ModelsService {
   rpc refreshRequestyModels(EmptyRequest) returns (OpenRouterCompatibleModelInfo);
   // Subscribe to OpenRouter models updates
   rpc subscribeToOpenRouterModels(EmptyRequest) returns (stream OpenRouterCompatibleModelInfo);
+  // Subscribe to CodeAgent models updates
+  rpc subscribeToCodeAgentModels(EmptyRequest) returns (stream OpenRouterCompatibleModelInfo);
   // Updates API configuration
   rpc updateApiConfigurationProto(UpdateApiConfigurationRequest) returns (Empty);
   // Refreshes and returns Groq models

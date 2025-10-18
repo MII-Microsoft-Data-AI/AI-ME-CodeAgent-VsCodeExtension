@@ -15,6 +15,7 @@ export async function updateApiConfigurationProto(
 	request: UpdateApiConfigurationRequest,
 ): Promise<Empty> {
 	try {
+		console.log("[updateApiConfigurationProto] Starting update")
 		if (!request.apiConfiguration) {
 			console.log("[APICONFIG: updateApiConfigurationProto] API configuration is required")
 			throw new Error("API configuration is required")
@@ -22,6 +23,10 @@ export async function updateApiConfigurationProto(
 
 		// Convert proto ApiConfiguration to application ApiConfiguration
 		const appApiConfiguration = convertProtoToApiConfiguration(request.apiConfiguration)
+		console.log("[updateApiConfigurationProto] Converted config:", {
+			codeagentApiKey: appApiConfiguration.codeagentApiKey,
+			codeagentBaseUrl: appApiConfiguration.codeagentBaseUrl,
+		})
 
 		// Update the API configuration in storage
 		controller.stateManager.setApiConfiguration(appApiConfiguration)
@@ -34,6 +39,7 @@ export async function updateApiConfigurationProto(
 
 		// Post updated state to webview
 		await controller.postStateToWebview()
+		console.log("[updateApiConfigurationProto] Update complete")
 
 		return Empty.create()
 	} catch (error) {

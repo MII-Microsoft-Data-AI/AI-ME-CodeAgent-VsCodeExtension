@@ -247,6 +247,24 @@ export interface OcaModelInfo extends OpenAiCompatibleModelInfo {
 	surveyContent?: string
 }
 
+export interface CodeAgentModel {
+	id: string // CosmosDB required field (same as modelId)
+	modelId: string
+	displayName: string
+	endpoint: string
+	apiKey?: string // Encrypted
+	deploymentName: string
+	status: "ACTIVE" | "INACTIVE"
+	apiVersion: string
+	pricing: {
+		inputTokensPer1k: number
+		outputTokensPer1k: number
+		cachedInputTokensPer1k: number
+	}
+	createdAt: string
+	updatedAt: string
+}
+
 export const CLAUDE_SONNET_1M_SUFFIX = ":1m"
 export const CLAUDE_SONNET_1M_TIERS = [
 	{

@@ -1,27 +1,47 @@
-import { EmptyRequest } from "@shared/proto/cline/common"
+import { StringRequest } from "@shared/proto/cline/common"
 import { Mode } from "@shared/storage/types"
-import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
 import React, { KeyboardEvent, memo, useEffect, useMemo, useRef, useState } from "react"
+import { useRemark } from "react-remark"
 import { useMount } from "react-use"
 import styled from "styled-components"
-import { useExtensionState } from "../../context/ExtensionStateContext"
-import { ModelsServiceClient } from "../../services/grpc-client"
-import { CODE_BLOCK_BG_COLOR } from "../common/CodeBlock"
+import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
+import { useExtensionState } from "@/context/ExtensionStateContext"
+import { StateServiceClient } from "@/services/grpc-client"
 import { highlight } from "../history/HistoryView"
-import { ModelInfoView } from "./common/ModelInfoView"
 import { getModeSpecificFields, normalizeApiConfiguration } from "./utils/providerUtils"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
 
+// Star icon for favorites
+const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: React.MouseEvent) => void }) => {
+	return (
+		<div
+			onClick={onClick}
+			style={{
+				cursor: "pointer",
+				color: isFavorite ? "var(--vscode-terminal-ansiBlue)" : "var(--vscode-descriptionForeground)",
+				marginLeft: "8px",
+				fontSize: "16px",
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "center",
+				userSelect: "none",
+				WebkitUserSelect: "none",
+			}}>
+			{isFavorite ? "★" : "☆"}
+		</div>
+	)
+}
+
 export interface CodeAgentModelPickerProps {
 	isPopup?: boolean
-	baseUrl?: string
 	currentMode: Mode
 }
 
-const CodeAgentModelPicker: React.FC<CodeAgentModelPickerProps> = ({ isPopup, baseUrl, currentMode }) => {
-	const { apiConfiguration, codeagentModels, setCodeAgentModels } = useExtensionState()
+const CodeAgentModelPicker: React.FC<CodeAgentModelPickerProps> = ({ isPopup, currentMode }) => {
 	const { handleModeFieldsChange } = useApiConfigurationHandlers()
+	const { apiConfiguration, favoritedModelIds, codeagentModels, refreshCodeAgentModels } = useExtensionState()
 	const modeFields = getModeSpecificFields(apiConfiguration, currentMode)
 	const [searchTerm, setSearchTerm] = useState(modeFields.codeagentModelId || "")
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
@@ -31,16 +51,14 @@ const CodeAgentModelPicker: React.FC<CodeAgentModelPickerProps> = ({ isPopup, ba
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 
 	const handleModelChange = (newModelId: string) => {
+		// could be setting invalid model id/undefined info but validation will catch it
+
+		setSearchTerm(newModelId)
+
 		handleModeFieldsChange(
 			{
-				codeagentModelId: {
-					plan: "planModeCodeagentModelId",
-					act: "actModeCodeagentModelId",
-				},
-				codeagentModelInfo: {
-					plan: "planModeCodeagentModelInfo",
-					act: "actModeCodeagentModelInfo",
-				},
+				codeagentModelId: { plan: "planModeCodeagentModelId", act: "actModeCodeagentModelId" },
+				codeagentModelInfo: { plan: "planModeCodeagentModelInfo", act: "actModeCodeagentModelInfo" },
 			},
 			{
 				codeagentModelId: newModelId,
@@ -48,22 +66,19 @@ const CodeAgentModelPicker: React.FC<CodeAgentModelPickerProps> = ({ isPopup, ba
 			},
 			currentMode,
 		)
-		setSearchTerm(newModelId)
 	}
 
 	const { selectedModelId, selectedModelInfo } = useMemo(() => {
 		return normalizeApiConfiguration(apiConfiguration, currentMode)
 	}, [apiConfiguration, currentMode])
 
-	useMount(() => {
-		ModelsServiceClient.refreshCodeAgentModels(EmptyRequest.create({}))
-			.then((response) => {
-				setCodeAgentModels(response.models)
-			})
-			.catch((err) => {
-				console.error("Failed to refresh CodeAgent models:", err)
-			})
-	})
+	useMount(refreshCodeAgentModels)
+
+	// Sync external changes when the modelId changes
+	useEffect(() => {
+		const currentModelId = modeFields.codeagentModelId || ""
+		setSearchTerm(currentModelId)
+	}, [modeFields.codeagentModelId])
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -79,7 +94,10 @@ const CodeAgentModelPicker: React.FC<CodeAgentModelPickerProps> = ({ isPopup, ba
 	}, [])
 
 	const modelIds = useMemo(() => {
-		return Object.keys(codeagentModels).sort((a, b) => a.localeCompare(b))
+		const unfilteredModelIds = Object.keys(codeagentModels).sort((a, b) => a.localeCompare(b))
+
+		// For CodeAgent: return all models
+		return unfilteredModelIds
 	}, [codeagentModels])
 
 	const searchableItems = useMemo(() => {
@@ -91,7 +109,7 @@ const CodeAgentModelPicker: React.FC<CodeAgentModelPickerProps> = ({ isPopup, ba
 
 	const fuse = useMemo(() => {
 		return new Fuse(searchableItems, {
-			keys: ["html"],
+			keys: ["html"], // highlight function will update this
 			threshold: 0.6,
 			shouldSort: true,
 			isCaseSensitive: false,
@@ -102,11 +120,19 @@ const CodeAgentModelPicker: React.FC<CodeAgentModelPickerProps> = ({ isPopup, ba
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		const results: { id: string; html: string }[] = searchTerm
-			? highlight(fuse.search(searchTerm), "model-item-highlight")
-			: searchableItems
-		return results
-	}, [searchableItems, searchTerm, fuse])
+		// IMPORTANT: highlightjs has a bug where if you use sort/localCompare - "// results.sort((a, b) => a.id.localeCompare(b.id)) ...sorting like this causes ids in objects to be reordered and mismatched"
+
+		// First, get all favorited models
+		const favoritedModels = searchableItems.filter((item) => favoritedModelIds.includes(item.id))
+
+		// Then get search results for non-favorited models
+		const searchResults = searchTerm
+			? highlight(fuse.search(searchTerm), "model-item-highlight").filter((item) => !favoritedModelIds.includes(item.id))
+			: searchableItems.filter((item) => !favoritedModelIds.includes(item.id))
+
+		// Combine favorited models with search results
+		return [...favoritedModels, ...searchResults]
+	}, [searchableItems, searchTerm, fuse, favoritedModelIds])
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
 		if (!isDropdownVisible) {
@@ -137,118 +163,296 @@ const CodeAgentModelPicker: React.FC<CodeAgentModelPickerProps> = ({ isPopup, ba
 	}
 
 	useEffect(() => {
-		if (selectedIndex >= 0 && itemRefs.current[selectedIndex] && dropdownListRef.current) {
-			const selectedItem = itemRefs.current[selectedIndex]
-			const container = dropdownListRef.current
+		setSelectedIndex(-1)
+		if (dropdownListRef.current) {
+			dropdownListRef.current.scrollTop = 0
+		}
+	}, [searchTerm])
 
-			if (selectedItem) {
-				const itemTop = selectedItem.offsetTop
-				const itemBottom = itemTop + selectedItem.offsetHeight
-				const containerTop = container.scrollTop
-				const containerBottom = containerTop + container.clientHeight
-
-				if (itemBottom > containerBottom) {
-					container.scrollTop = itemBottom - container.clientHeight
-				} else if (itemTop < containerTop) {
-					container.scrollTop = itemTop
-				}
-			}
+	useEffect(() => {
+		if (selectedIndex >= 0 && itemRefs.current[selectedIndex]) {
+			itemRefs.current[selectedIndex]?.scrollIntoView({
+				block: "nearest",
+				behavior: "smooth",
+			})
 		}
 	}, [selectedIndex])
 
 	return (
-		<Container>
-			<label htmlFor="codeagent-model-id">
-				<span style={{ fontWeight: 500 }}>Model</span>
-			</label>
-			<div ref={dropdownRef} style={{ position: "relative" }}>
-				<VSCodeTextField
-					id="codeagent-model-id"
-					onFocus={() => setIsDropdownVisible(true)}
-					onInput={(e: any) => {
-						setSearchTerm(e.target.value)
-						setIsDropdownVisible(true)
-					}}
-					onKeyDown={handleKeyDown}
-					placeholder="Search models..."
-					style={{ width: "100%" }}
-					value={searchTerm}
-				/>
+		<div style={{ width: "100%" }}>
+			<style>
+				{`
+				.model-item-highlight {
+					background-color: var(--vscode-editor-findMatchHighlightBackground);
+					color: inherit;
+				}
+				`}
+			</style>
+			<div style={{ display: "flex", flexDirection: "column" }}>
+				<label htmlFor="model-search">
+					<span style={{ fontWeight: 500 }}>Model</span>
+				</label>
 
-				{isDropdownVisible && modelIds.length > 0 && (
-					<DropdownList ref={dropdownListRef}>
-						{modelSearchResults.map((model, index) => (
-							<DropdownItem
-								dangerouslySetInnerHTML={{ __html: model.html }}
-								isSelected={index === selectedIndex}
-								key={model.id}
+				<DropdownWrapper ref={dropdownRef}>
+					<VSCodeTextField
+						id="model-search"
+						onFocus={() => setIsDropdownVisible(true)}
+						onInput={(e) => {
+							setSearchTerm((e.target as HTMLInputElement)?.value.toLowerCase() || "")
+							setIsDropdownVisible(true)
+						}}
+						onKeyDown={handleKeyDown}
+						placeholder="Search and select a model..."
+						style={{
+							width: "100%",
+							zIndex: OPENROUTER_MODEL_PICKER_Z_INDEX,
+							position: "relative",
+						}}
+						value={searchTerm}>
+						{searchTerm && (
+							<div
+								aria-label="Clear search"
+								className="input-icon-button codicon codicon-close"
 								onClick={() => {
-									handleModelChange(model.id)
-									setIsDropdownVisible(false)
+									setSearchTerm("")
+									setIsDropdownVisible(true)
 								}}
-								onMouseEnter={() => setSelectedIndex(index)}
-								ref={(el) => (itemRefs.current[index] = el)}
+								slot="end"
+								style={{
+									display: "flex",
+									justifyContent: "center",
+									alignItems: "center",
+									height: "100%",
+								}}
 							/>
-						))}
-					</DropdownList>
-				)}
-
-				{isDropdownVisible && modelIds.length === 0 && (
-					<DropdownList>
-						<DropdownItem isSelected={false}>
-							<span style={{ opacity: 0.5 }}>
-								{baseUrl
-									? "No models available. Please check your API key and base URL."
-									: "Please enter a base URL to load models."}
-							</span>
-						</DropdownItem>
-					</DropdownList>
-				)}
+						)}
+					</VSCodeTextField>
+					{isDropdownVisible && (
+						<DropdownList ref={dropdownListRef}>
+							{modelSearchResults.map((item, index) => {
+								const isFavorite = (favoritedModelIds || []).includes(item.id)
+								return (
+									<DropdownItem
+										isSelected={index === selectedIndex}
+										key={item.id}
+										onClick={() => {
+											handleModelChange(item.id)
+											setIsDropdownVisible(false)
+										}}
+										onMouseEnter={() => setSelectedIndex(index)}
+										ref={(el) => (itemRefs.current[index] = el)}>
+										<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+											<span dangerouslySetInnerHTML={{ __html: item.html }} />
+											<StarIcon
+												isFavorite={isFavorite}
+												onClick={(e) => {
+													e.stopPropagation()
+													StateServiceClient.toggleFavoriteModel(
+														StringRequest.create({ value: item.id }),
+													).catch((error) => console.error("Failed to toggle favorite model:", error))
+												}}
+											/>
+										</div>
+									</DropdownItem>
+								)
+							})}
+						</DropdownList>
+					)}
+				</DropdownWrapper>
 			</div>
-
-			<ModelInfoView isPopup={isPopup} modelInfo={selectedModelInfo} selectedModelId={selectedModelId} />
-		</Container>
+		</div>
 	)
 }
 
-const Container = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 5px;
+export default CodeAgentModelPicker
+
+// Dropdown
+
+const DropdownWrapper = styled.div`
+	position: relative;
+	width: 100%;
 `
+
+export const OPENROUTER_MODEL_PICKER_Z_INDEX = 1_000
 
 const DropdownList = styled.div`
 	position: absolute;
-	top: 100%;
+	top: calc(100% - 3px);
 	left: 0;
-	right: 0;
-	max-height: 300px;
+	width: calc(100% - 2px);
+	max-height: 200px;
 	overflow-y: auto;
 	background-color: var(--vscode-dropdown-background);
-	border: 1px solid var(--vscode-dropdown-border);
-	border-radius: 3px;
-	margin-top: 2px;
-	z-index: 1000;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	border: 1px solid var(--vscode-list-activeSelectionBackground);
+	z-index: ${OPENROUTER_MODEL_PICKER_Z_INDEX - 1};
+	border-bottom-left-radius: 3px;
+	border-bottom-right-radius: 3px;
 `
 
 const DropdownItem = styled.div<{ isSelected: boolean }>`
-	padding: 8px 12px;
+	padding: 5px 10px;
 	cursor: pointer;
-	background-color: ${(props) =>
-		props.isSelected ? "var(--vscode-list-hoverBackground)" : "var(--vscode-dropdown-background)"};
-	color: ${(props) => (props.isSelected ? "var(--vscode-list-hoverForeground)" : "var(--vscode-dropdown-foreground)")};
+	word-break: break-all;
+	white-space: normal;
+
+	background-color: ${({ isSelected }) => (isSelected ? "var(--vscode-list-activeSelectionBackground)" : "inherit")};
 
 	&:hover {
-		background-color: var(--vscode-list-hoverBackground);
-		color: var(--vscode-list-hoverForeground);
-	}
-
-	mark {
-		background-color: ${CODE_BLOCK_BG_COLOR};
-		color: inherit;
-		font-weight: 600;
+		background-color: var(--vscode-list-activeSelectionBackground);
 	}
 `
 
-export default memo(CodeAgentModelPicker)
+// Markdown
+
+const StyledMarkdown = styled.div`
+	font-family:
+		var(--vscode-font-family),
+		system-ui,
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		Oxygen,
+		Ubuntu,
+		Cantarell,
+		"Open Sans",
+		"Helvetica Neue",
+		sans-serif;
+	font-size: 12px;
+	color: var(--vscode-descriptionForeground);
+
+	p,
+	li,
+	ol,
+	ul {
+		line-height: 1.25;
+		margin: 0;
+	}
+
+	ol,
+	ul {
+		padding-left: 1.5em;
+		margin-left: 0;
+	}
+
+	p {
+		white-space: pre-wrap;
+	}
+
+	a {
+		text-decoration: none;
+	}
+	a {
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+`
+
+export const ModelDescriptionMarkdown = memo(
+	({
+		markdown,
+		key,
+		isExpanded,
+		setIsExpanded,
+		isPopup,
+	}: {
+		markdown?: string
+		key: string
+		isExpanded: boolean
+		setIsExpanded: (isExpanded: boolean) => void
+		isPopup?: boolean
+	}) => {
+		const [reactContent, setMarkdown] = useRemark()
+		// const [isExpanded, setIsExpanded] = useState(false)
+		const [showSeeMore, setShowSeeMore] = useState(false)
+		const textContainerRef = useRef<HTMLDivElement>(null)
+		const textRef = useRef<HTMLDivElement>(null)
+
+		useEffect(() => {
+			setMarkdown(markdown || "")
+		}, [markdown, setMarkdown])
+
+		useEffect(() => {
+			if (textRef.current && textContainerRef.current) {
+				const { scrollHeight } = textRef.current
+				const { clientHeight } = textContainerRef.current
+				const isOverflowing = scrollHeight > clientHeight
+				setShowSeeMore(isOverflowing)
+				// if (!isOverflowing) {
+				// 	setIsExpanded(false)
+				// }
+			}
+		}, [reactContent, setIsExpanded])
+
+		return (
+			<StyledMarkdown key={key} style={{ display: "inline-block", marginBottom: 0 }}>
+				<div
+					ref={textContainerRef}
+					style={{
+						overflowY: isExpanded ? "auto" : "hidden",
+						position: "relative",
+						wordBreak: "break-word",
+						overflowWrap: "anywhere",
+					}}>
+					<div
+						ref={textRef}
+						style={{
+							display: "-webkit-box",
+							WebkitLineClamp: isExpanded ? "unset" : 3,
+							WebkitBoxOrient: "vertical",
+							overflow: "hidden",
+							// whiteSpace: "pre-wrap",
+							// wordBreak: "break-word",
+							// overflowWrap: "anywhere",
+						}}>
+						{reactContent}
+					</div>
+					{!isExpanded && showSeeMore && (
+						<div
+							style={{
+								position: "absolute",
+								right: 0,
+								bottom: 0,
+								display: "flex",
+								alignItems: "center",
+							}}>
+							<div
+								style={{
+									width: 30,
+									height: "1.2em",
+									background: "linear-gradient(to right, transparent, var(--vscode-sideBar-background))",
+								}}
+							/>
+							<VSCodeLink
+								onClick={() => setIsExpanded(true)}
+								style={{
+									// cursor: "pointer",
+									// color: "var(--vscode-textLink-foreground)",
+									fontSize: "inherit",
+									paddingRight: 0,
+									paddingLeft: 3,
+									backgroundColor: isPopup ? CODE_BLOCK_BG_COLOR : "var(--vscode-sideBar-background)",
+								}}>
+								See more
+							</VSCodeLink>
+						</div>
+					)}
+				</div>
+				{/* {isExpanded && showSeeMore && (
+				<div
+					style={{
+						cursor: "pointer",
+						color: "var(--vscode-textLink-foreground)",
+						marginLeft: "auto",
+						textAlign: "right",
+						paddingRight: 2,
+					}}
+					onClick={() => setIsExpanded(false)}>
+					See less
+				</div>
+			)} */}
+			</StyledMarkdown>
+		)
+	},
+)

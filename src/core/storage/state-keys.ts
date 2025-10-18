@@ -102,6 +102,7 @@ export interface Settings {
 	difyBaseUrl: string | undefined
 	autoCondenseThreshold: number | undefined // number from 0 to 1
 	ocaBaseUrl: string | undefined
+	codeagentBaseUrl: string | undefined
 
 	// Plan mode configurations
 	planModeApiProvider: ApiProvider
@@ -135,6 +136,8 @@ export interface Settings {
 	planModeHuaweiCloudMaasModelInfo: ModelInfo | undefined
 	planModeOcaModelId: string | undefined
 	planModeOcaModelInfo: OcaModelInfo | undefined
+	planModeCodeagentModelId: string | undefined
+	planModeCodeagentModelInfo: ModelInfo | undefined
 	// Act mode configurations
 	actModeApiProvider: ApiProvider
 	actModeApiModelId: string | undefined
@@ -171,6 +174,8 @@ export interface Settings {
 	actModeVercelAiGatewayModelInfo: ModelInfo | undefined
 	actModeOcaModelId: string | undefined
 	actModeOcaModelInfo: OcaModelInfo | undefined
+	actModeCodeagentModelId: string | undefined
+	actModeCodeagentModelInfo: ModelInfo | undefined
 }
 
 export interface Secrets {
@@ -211,6 +216,7 @@ export interface Secrets {
 	difyApiKey: string | undefined
 	ocaApiKey: string | undefined
 	ocaRefreshToken: string | undefined
+	codeagentApiKey: string | undefined
 }
 
 export interface LocalState {

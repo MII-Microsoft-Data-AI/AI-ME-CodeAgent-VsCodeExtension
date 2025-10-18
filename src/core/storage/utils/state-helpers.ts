@@ -49,6 +49,7 @@ export async function readSecretsFromDisk(context: ExtensionContext): Promise<Se
 		authNonce,
 		ocaApiKey,
 		ocaRefreshToken,
+		codeagentApiKey,
 	] = await Promise.all([
 		context.secrets.get("apiKey") as Promise<Secrets["apiKey"]>,
 		context.secrets.get("openRouterApiKey") as Promise<Secrets["openRouterApiKey"]>,
@@ -87,6 +88,7 @@ export async function readSecretsFromDisk(context: ExtensionContext): Promise<Se
 		context.secrets.get("authNonce") as Promise<Secrets["authNonce"]>,
 		context.secrets.get("ocaApiKey") as Promise<string | undefined>,
 		context.secrets.get("ocaRefreshToken") as Promise<string | undefined>,
+		context.secrets.get("codeagentApiKey") as Promise<string | undefined>,
 	])
 
 	return {
@@ -127,6 +129,7 @@ export async function readSecretsFromDisk(context: ExtensionContext): Promise<Se
 		awsSessionToken,
 		ocaApiKey,
 		ocaRefreshToken,
+		codeagentApiKey,
 	}
 }
 
@@ -383,6 +386,17 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 		const sapAiCoreUseOrchestrationMode =
 			context.globalState.get<GlobalStateAndSettings["sapAiCoreUseOrchestrationMode"]>("sapAiCoreUseOrchestrationMode")
 
+		// CodeAgent
+		const codeagentBaseUrl = context.globalState.get<GlobalStateAndSettings["codeagentBaseUrl"]>("codeagentBaseUrl")
+		const actModeCodeagentModelId =
+			context.globalState.get<GlobalStateAndSettings["actModeCodeagentModelId"]>("actModeCodeagentModelId")
+		const actModeCodeagentModelInfo =
+			context.globalState.get<GlobalStateAndSettings["actModeCodeagentModelInfo"]>("actModeCodeagentModelInfo")
+		const planModeCodeagentModelId =
+			context.globalState.get<GlobalStateAndSettings["planModeCodeagentModelId"]>("planModeCodeagentModelId")
+		const planModeCodeagentModelInfo =
+			context.globalState.get<GlobalStateAndSettings["planModeCodeagentModelInfo"]>("planModeCodeagentModelInfo")
+
 		let apiProvider: ApiProvider
 		if (planModeApiProvider) {
 			apiProvider = planModeApiProvider
@@ -456,6 +470,7 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 			difyBaseUrl,
 			sapAiCoreUseOrchestrationMode: sapAiCoreUseOrchestrationMode ?? true,
 			ocaBaseUrl,
+			codeagentBaseUrl,
 			// Plan mode configurations
 			planModeApiProvider: planModeApiProvider || apiProvider,
 			planModeApiModelId,
@@ -492,6 +507,8 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 			planModeVercelAiGatewayModelInfo,
 			planModeOcaModelId,
 			planModeOcaModelInfo,
+			planModeCodeagentModelId,
+			planModeCodeagentModelInfo,
 			// Act mode configurations
 			actModeApiProvider: actModeApiProvider || apiProvider,
 			actModeApiModelId,
@@ -526,6 +543,8 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 			actModeVercelAiGatewayModelInfo,
 			actModeOcaModelId,
 			actModeOcaModelInfo,
+			actModeCodeagentModelId,
+			actModeCodeagentModelInfo,
 
 			// Other global fields
 			focusChainSettings: focusChainSettings || DEFAULT_FOCUS_CHAIN_SETTINGS,
@@ -621,6 +640,7 @@ export async function resetGlobalState(controller: Controller) {
 		"difyApiKey",
 		"ocaApiKey",
 		"ocaRefreshToken",
+		"codeagentApiKey",
 	]
 	await Promise.all(secretKeys.map((key) => context.secrets.delete(key)))
 	await controller.stateManager.reInitialize()

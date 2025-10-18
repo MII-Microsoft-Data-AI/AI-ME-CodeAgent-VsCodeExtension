@@ -5,6 +5,7 @@ import { fileExistsAtPath } from "@utils/fs"
 import axios from "axios"
 import fs from "fs/promises"
 import path from "path"
+import { Logger } from "@/services/logging/Logger"
 import { Controller } from ".."
 
 /**
@@ -50,16 +51,26 @@ export async function refreshCodeAgentModels(
 		} else {
 			// Ensure the API key and base URL are properly formatted
 			const cleanApiKey = codeagentApiKey.trim()
-			const cleanBaseUrl = codeagentBaseUrl.trim().replace(/\/$/, "")
+			let cleanBaseUrl = codeagentBaseUrl.trim().replace(/\/+$/, "")
+
+			// Validate URL format (http|https)://domain
+			if (!cleanBaseUrl.match(/^https?:\/\//i)) {
+				throw new Error("CodeAgent Base URL must start with http:// or https://")
+			}
+
+			// Extract only protocol and host (remove any paths)
+			const urlObj = new URL(cleanBaseUrl)
+			cleanBaseUrl = `${urlObj.protocol}//${urlObj.host}`
 
 			if (!cleanApiKey || !cleanBaseUrl) {
+				Logger.log("Invalid CodeAgent API key or base URL after cleaning")
 				throw new Error("Invalid CodeAgent API key or base URL format")
 			}
 
-			console.log("Fetching CodeAgent models from:", cleanBaseUrl)
+			Logger.log("Fetching CodeAgent models from API")
 
-			// Construct the models endpoint URL
-			const modelsUrl = cleanBaseUrl.endsWith("/v1") ? `${cleanBaseUrl}/models` : `${cleanBaseUrl}/v1/models`
+			// Construct the models endpoint URL - use /api/models endpoint
+			const modelsUrl = `${cleanBaseUrl}/api/models`
 
 			const response = await axios.get(modelsUrl, {
 				headers: {
@@ -69,6 +80,8 @@ export async function refreshCodeAgentModels(
 				},
 				timeout: 15000, // 15 second timeout
 			})
+
+			Logger.log(`CodeAgent models API response status: ${response.status}`)
 
 			if (response.data?.data) {
 				const rawModels = response.data.data
@@ -96,8 +109,8 @@ export async function refreshCodeAgentModels(
 					models[rawModel.id] = modelInfo
 				}
 
-				await fs.writeFile(codeagentModelsFilePath, JSON.stringify(models))
-				console.log("CodeAgent models fetched and saved:", Object.keys(models))
+				await fs.writeFile(codeagentModelsFilePath, JSON.stringify(rawModels))
+				console.log("CodeAgent models fetched and saved:", Object.keys(rawModels))
 			} else {
 				console.error("Invalid response from CodeAgent API")
 			}

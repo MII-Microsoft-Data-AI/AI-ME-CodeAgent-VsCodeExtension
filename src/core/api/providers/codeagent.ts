@@ -31,18 +31,23 @@ export class CodeAgentHandler implements ApiHandler {
 				throw new Error("CodeAgent Base URL is required")
 			}
 			try {
-				// Ensure the base URL is properly formatted for OpenAI SDK
-				// The OpenAI SDK expects baseURL without /v1 suffix (it adds it automatically)
+				// Normalize the base URL to format: (http|https)://domain
 				let baseUrl = this.options.codeagentBaseUrl.trim()
-				// Remove trailing slashes
-				baseUrl = baseUrl.replace(/\/+$/, "")
-				// Remove /v1 suffix if present (OpenAI SDK adds it)
-				if (baseUrl.endsWith("/v1")) {
-					baseUrl = baseUrl.slice(0, -3)
+
+				// Validate that URL starts with http:// or https://
+				if (!baseUrl.match(/^https?:\/\//i)) {
+					throw new Error("Base URL must start with http:// or https://")
 				}
 
+				// Remove all trailing slashes
+				baseUrl = baseUrl.replace(/\/+$/, "")
+
+				// Remove any path segments (keep only protocol and domain)
+				const urlObj = new URL(baseUrl)
+				baseUrl = `${urlObj.protocol}//${urlObj.host}`
+
 				this.client = new OpenAI({
-					baseURL: baseUrl,
+					baseURL: baseUrl + "/api/openai",
 					apiKey: this.options.codeagentApiKey,
 					defaultHeaders: {
 						"HTTP-Referer": "https://cline.bot",
