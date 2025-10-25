@@ -1,0 +1,2 @@
+vsix:
+	npx vsce package
