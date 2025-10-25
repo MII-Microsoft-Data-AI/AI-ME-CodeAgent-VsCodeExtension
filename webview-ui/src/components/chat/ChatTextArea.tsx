@@ -1168,7 +1168,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				case "requesty":
 					return `${selectedProvider}:${requestyModelId}`
 				case "codeagent":
-					return `${selectedProvider}:${codeagentModels[selectedModelId].displayName ?? selectedModelId}`
+					try {
+						return `${selectedProvider}:${codeagentModels[selectedModelId].displayName ?? selectedModelId}`
+					} catch {
+						return `${selectedProvider}:${selectedModelId}`
+					}
 				case "anthropic":
 				case "openrouter":
 				default:

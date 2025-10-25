@@ -263,6 +263,8 @@ export interface CodeAgentModelInfo {
 	updatedAt: string
 	supportImage: boolean
 	description: string
+	maxTokens: number
+	maxContextWindow: number
 }
 
 export interface CodeAgentModel {
@@ -281,6 +283,10 @@ export interface CodeAgentModel {
 	}
 	createdAt: string
 	updatedAt: string
+	description: string
+	supportImage: boolean
+	maxTokens: number
+	maxContextWindow: number
 }
 
 export const CLAUDE_SONNET_1M_SUFFIX = ":1m"

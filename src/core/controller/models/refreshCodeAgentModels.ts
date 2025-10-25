@@ -89,6 +89,7 @@ export async function refreshCodeAgentModels(
 
 			if (response.data) {
 				const rawModels = response.data
+				console.log("KAENOVA RAW MODELS", rawModels)
 
 				for (const rawModel of rawModels) {
 					// Map CodeAgent backend response to CodeAgentModelInfo schema
@@ -101,14 +102,15 @@ export async function refreshCodeAgentModels(
 						deploymentName: rawModel.deploymentName || rawModel.deployment_name || "",
 						status: rawModel.status || "ACTIVE",
 						apiVersion: rawModel.apiVersion || rawModel.api_version || "2024-02-01",
-						inputTokensPer1m: rawModel.pricing?.inputTokensPer1m || rawModel.pricing?.input_tokens_per_1m || 0,
-						outputTokensPer1m: rawModel.pricing?.outputTokensPer1m || rawModel.pricing?.output_tokens_per_1m || 0,
-						cachedInputTokensPer1m:
-							rawModel.pricing?.cachedInputTokensPer1m || rawModel.pricing?.cached_input_tokens_per_1m || 0,
+						inputTokensPer1m: rawModel.inputTokensPer1m || 0,
+						outputTokensPer1m: rawModel.outputTokensPer1m || 0,
+						cachedInputTokensPer1m: rawModel.cachedInputTokensPer1m || 0,
 						createdAt: rawModel.createdAt || rawModel.created_at || new Date().toISOString(),
 						updatedAt: rawModel.updatedAt || rawModel.updated_at || new Date().toISOString(),
 						description: rawModel.description || "",
 						supportImage: rawModel.supportImage || false,
+						maxContextWindow: rawModel.maxContextWindow || rawModel.max_context_window || 128000,
+						maxTokens: rawModel.maxTokens || rawModel.max_tokens || 128000,
 					}
 
 					models[rawModel.id] = modelInfo

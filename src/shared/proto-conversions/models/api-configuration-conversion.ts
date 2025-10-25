@@ -160,6 +160,8 @@ function convertCodeAgentModelInfoToProto(info: CodeAgentModelInfo | undefined):
 		updatedAt: info.updatedAt,
 		description: info.description,
 		supportImage: info.supportImage,
+		maxContextWindow: info.maxContextWindow,
+		maxTokens: info.maxTokens,
 	}
 }
 
@@ -185,6 +187,8 @@ function convertProtoToCodeAgentModelInfo(info: ProtoCodeAgentModelInfo | undefi
 		updatedAt: info.updatedAt,
 		description: info.description,
 		supportImage: info.supportImage,
+		maxContextWindow: info.maxContextWindow,
+		maxTokens: info.maxTokens,
 	}
 }
 

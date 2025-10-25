@@ -111,6 +111,8 @@ message CodeAgentModelInfo {
   string updated_at = 13;
   bool support_image = 14;
   string description = 15;
+  double max_tokens = 16;
+  double max_context_window = 17;
 }
 
 // Shared response message for model information

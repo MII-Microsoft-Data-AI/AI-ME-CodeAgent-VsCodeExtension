@@ -1,6 +1,5 @@
 import { Anthropic } from "@anthropic-ai/sdk"
 import { CodeAgentModelInfo, ModelInfo, openAiModelInfoSaneDefaults } from "@shared/api"
-import { calculateApiCostOpenAI } from "@utils/cost"
 import OpenAI from "openai"
 import { Logger } from "@/services/logging/Logger"
 import { ApiHandler, CommonApiHandlerOptions } from "../index"
@@ -20,15 +19,15 @@ interface CodeAgentHandlerOptions extends CommonApiHandlerOptions {
  */
 function convertCodeAgentModelInfoToModelInfo(codeAgentInfo: CodeAgentModelInfo): ModelInfo {
 	return {
-		maxTokens: 4096, // Default max tokens for CodeAgent models
-		contextWindow: 128000, // Default context window
-		supportsImages: false, // CodeAgent models typically don't support images
+		maxTokens: codeAgentInfo.maxTokens ?? 100000, // Default max tokens for CodeAgent models
+		contextWindow: codeAgentInfo.maxContextWindow ?? 200000, // Default context window
+		supportsImages: codeAgentInfo.supportImage ?? false, // CodeAgent models typically don't support images
 		supportsPromptCache: false, // Set based on your backend capabilities
-		inputPrice: codeAgentInfo.inputTokensPer1m, // Convert from per 1k to per 1M
-		outputPrice: codeAgentInfo.outputTokensPer1m, // Convert from per 1k to per 1M
-		cacheWritesPrice: codeAgentInfo.cachedInputTokensPer1m, // Convert from per 1k to per 1M
+		inputPrice: codeAgentInfo.inputTokensPer1m ?? 0, // Price per 1M tokens
+		outputPrice: codeAgentInfo.outputTokensPer1m ?? 0, // Price per 1M tokens
+		cacheWritesPrice: codeAgentInfo.cachedInputTokensPer1m ?? 0, // Price per 1M tokens
 		cacheReadsPrice: 0, // Set if your backend provides this
-		description: codeAgentInfo.displayName || codeAgentInfo.modelId,
+		description: codeAgentInfo.description || codeAgentInfo.displayName || codeAgentInfo.modelId,
 	}
 }
 
@@ -85,6 +84,9 @@ export class CodeAgentHandler implements ApiHandler {
 		const modelId = this.options.codeagentModelId ?? ""
 		const codeAgentModelInfo = this.options.codeagentModelInfo
 
+		console.log("KAENOVA: codeagentModelInfo from options:", codeAgentModelInfo)
+		console.log("KAENOVA: Full options:", this.options)
+
 		// Convert CodeAgentModelInfo to ModelInfo for internal use
 		const modelInfo = codeAgentModelInfo ? convertCodeAgentModelInfoToModelInfo(codeAgentModelInfo) : undefined
 
@@ -110,7 +112,10 @@ export class CodeAgentHandler implements ApiHandler {
 
 		let lastUsage: OpenAI.CompletionUsage | undefined
 
+		console.log("KAENOVA: Model Info:", modelInfo)
+
 		for await (const chunk of stream) {
+			console.log("KAENOVA: Received chunk:", chunk)
 			const delta = chunk.choices[0]?.delta
 			if (delta?.content) {
 				yield {
@@ -120,28 +125,34 @@ export class CodeAgentHandler implements ApiHandler {
 			}
 
 			if (chunk.usage) {
-				lastUsage = chunk.usage
+				yield* this.yieldUsage(modelInfo!, chunk.usage)
 			}
 		}
+	}
 
-		if (lastUsage) {
-			const inputTokens = lastUsage.prompt_tokens || 0
-			const outputTokens = lastUsage.completion_tokens || 0
-			// Support for prompt caching if the backend provides it
-			const cacheWriteTokens = (lastUsage as any).prompt_tokens_details?.caching_tokens || undefined
-			const cacheReadTokens = (lastUsage as any).prompt_tokens_details?.cached_tokens || undefined
+	private async *yieldUsage(info: ModelInfo, usage: OpenAI.Completions.CompletionUsage | undefined): ApiStream {
+		if (!(info.inputPrice && info.outputPrice && info.cacheWritesPrice)) {
+			return
+		}
 
-			const model = this.getModel()
-			const totalCost = calculateApiCostOpenAI(model.info, inputTokens, outputTokens, cacheWriteTokens, cacheReadTokens)
+		const inputTokens = usage?.prompt_tokens || 0 // sum of cache hits and misses
+		const outputTokens = usage?.completion_tokens || 0
+		const cacheReadTokens = usage?.prompt_tokens_details?.cached_tokens || 0
+		const cacheWriteTokens = 0
+		const nonCachedInputTokens = Math.max(0, inputTokens - cacheReadTokens - cacheWriteTokens)
 
-			yield {
-				type: "usage",
-				inputTokens: inputTokens,
-				outputTokens: outputTokens,
-				cacheWriteTokens: cacheWriteTokens,
-				cacheReadTokens: cacheReadTokens,
-				totalCost: totalCost,
-			}
+		const totalCost =
+			(inputTokens - cacheReadTokens) * (info.inputPrice / 1000000) +
+			outputTokens * (info.outputPrice / 1000000) +
+			cacheWriteTokens * (info.cacheWritesPrice / 1000000)
+
+		yield {
+			type: "usage",
+			inputTokens: nonCachedInputTokens,
+			outputTokens: outputTokens,
+			cacheWriteTokens: cacheWriteTokens,
+			cacheReadTokens: cacheReadTokens,
+			totalCost: totalCost,
 		}
 	}
 
