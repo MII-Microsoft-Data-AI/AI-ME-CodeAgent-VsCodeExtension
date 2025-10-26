@@ -100,13 +100,13 @@ message OpenRouterModelInfo {
 
 // Model info for CodeAgent models with custom schema
 message CodeAgentModelInfo {
-  string id = 1;  // CosmosDB required field (same as modelId)
+  string id = 1; // CosmosDB required field (same as modelId)
   string model_id = 2;
   string display_name = 3;
   string endpoint = 4;
-  optional string api_key = 5;  // Encrypted
+  optional string api_key = 5; // Encrypted
   string deployment_name = 6;
-  string status = 7;  // "ACTIVE" or "INACTIVE"
+  string status = 7; // "ACTIVE" or "INACTIVE"
   string api_version = 8;
   // Pricing information
   double input_tokens_per_1m = 9;

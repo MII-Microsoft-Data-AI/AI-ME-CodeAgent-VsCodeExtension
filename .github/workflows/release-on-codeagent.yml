@@ -1,6 +1,7 @@
 name: Release codeagent VSIX
 
 on:
+  workflow_dispatch: 
   push:
     branches:
       - codeagent

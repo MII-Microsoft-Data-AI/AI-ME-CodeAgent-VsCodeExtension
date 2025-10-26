@@ -431,7 +431,7 @@ message ApiConfiguration {
   optional string oca_refresh_token = 68;
   optional string codeagent_api_key = 69;
   optional string codeagent_base_url = 70;
-  
+
   // Plan mode configurations
   optional ApiProvider plan_mode_api_provider = 100;
   optional string plan_mode_api_model_id = 101;
@@ -461,7 +461,7 @@ message ApiConfiguration {
   optional OcaModelInfo plan_mode_oca_model_info = 125;
   optional string plan_mode_codeagent_model_id = 126;
   optional CodeAgentModelInfo plan_mode_codeagent_model_info = 127;
-  
+
   // Act mode configurations
   optional ApiProvider act_mode_api_provider = 200;
   optional string act_mode_api_model_id = 201;
