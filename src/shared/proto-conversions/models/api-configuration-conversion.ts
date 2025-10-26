@@ -473,6 +473,7 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 		awsSessionToken: config.awsSessionToken,
 		awsRegion: config.awsRegion,
 		awsUseCrossRegionInference: config.awsUseCrossRegionInference,
+		awsUseGlobalInference: config.awsUseGlobalInference,
 		awsBedrockUsePromptCache: config.awsBedrockUsePromptCache,
 		awsUseProfile: config.awsUseProfile,
 		awsAuthentication: config.awsAuthentication,
@@ -530,6 +531,7 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 		difyApiKey: config.difyApiKey,
 		difyBaseUrl: config.difyBaseUrl,
 		ocaBaseUrl: config.ocaBaseUrl,
+		ocaMode: config.ocaMode,
 		codeagentApiKey: config.codeagentApiKey,
 		codeagentBaseUrl: config.codeagentBaseUrl,
 
@@ -628,6 +630,7 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 		awsSessionToken: protoConfig.awsSessionToken,
 		awsRegion: protoConfig.awsRegion,
 		awsUseCrossRegionInference: protoConfig.awsUseCrossRegionInference,
+		awsUseGlobalInference: protoConfig.awsUseGlobalInference,
 		awsBedrockUsePromptCache: protoConfig.awsBedrockUsePromptCache,
 		awsUseProfile: protoConfig.awsUseProfile,
 		awsAuthentication: protoConfig.awsAuthentication,
@@ -685,6 +688,7 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 		difyApiKey: protoConfig.difyApiKey,
 		difyBaseUrl: protoConfig.difyBaseUrl,
 		ocaBaseUrl: protoConfig.ocaBaseUrl,
+		ocaMode: protoConfig.ocaMode,
 		codeagentApiKey: protoConfig.codeagentApiKey,
 		codeagentBaseUrl: protoConfig.codeagentBaseUrl,
 

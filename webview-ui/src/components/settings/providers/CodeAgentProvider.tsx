@@ -62,7 +62,7 @@ export const CodeAgentProvider = ({ showModelOptions, isPopup, currentMode }: Op
 				}}
 				placeholder={"Enter base URL..."}
 				style={{ width: "100%", marginBottom: 10 }}
-				type="url">
+				type="text">
 				<span style={{ fontWeight: 500 }}>Code Agent URL</span>
 			</DebouncedTextField>
 
