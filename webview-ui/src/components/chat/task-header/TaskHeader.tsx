@@ -87,6 +87,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 
 	// Simplified computed values
 	const { selectedModelInfo } = normalizeApiConfiguration(apiConfiguration, mode)
+	console.log("KAENOVA: Selected model info in TaskHeader", selectedModelInfo)
 	const modeFields = getModeSpecificFields(apiConfiguration, mode)
 
 	const isCostAvailable =

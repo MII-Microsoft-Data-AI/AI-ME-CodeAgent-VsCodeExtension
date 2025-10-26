@@ -366,14 +366,16 @@ export function normalizeApiConfiguration(
 					: apiConfiguration?.actModeCodeagentModelInfo
 			return {
 				selectedProvider: provider,
-				selectedModelId: codeagentModelId || "",
+				selectedModelId: codeagentModelId ?? "",
 				selectedModelInfo: {
-					description: codeagentModelInfo?.displayName || "CodeAgent model",
+					description: codeagentModelInfo?.displayName ?? "CodeAgent model",
 					supportsPromptCache: true,
 					cacheReadsPrice: codeagentModelInfo?.cachedInputTokensPer1m,
 					inputPrice: codeagentModelInfo?.inputTokensPer1m,
 					outputPrice: codeagentModelInfo?.outputTokensPer1m,
-					supportsImages: codeagentModelInfo?.supportImage || false,
+					supportsImages: codeagentModelInfo?.supportImage ?? false,
+					contextWindow: codeagentModelInfo?.maxContextWindow ?? 0,
+					maxTokens: codeagentModelInfo?.maxTokens ?? 0,
 				},
 			}
 		default:

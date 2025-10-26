@@ -120,8 +120,15 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 
 	const tokenData = useMemo(() => {
 		if (!contextWindow) {
+			console.log("KAENOVA: No context window defined")
 			return null
 		}
+		console.log("KAENOVA: Calculating token data", {
+			percentage: (lastApiReqTotalTokens / contextWindow) * 100,
+			max: contextWindow,
+			used: lastApiReqTotalTokens,
+		})
+
 		return {
 			percentage: (lastApiReqTotalTokens / contextWindow) * 100,
 			max: contextWindow,
