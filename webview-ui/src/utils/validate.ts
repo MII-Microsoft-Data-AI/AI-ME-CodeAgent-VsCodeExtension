@@ -154,6 +154,14 @@ export function validateApiConfiguration(currentMode: Mode, apiConfiguration?: A
 					return "You must provide a valid API key or choose a different provider."
 				}
 				break
+			case "codeagent":
+				if (!apiConfiguration.codeagentBaseUrl) {
+					return "You must provide a valid Base URL or choose a different provider."
+				}
+				if (!apiConfiguration.codeagentApiKey) {
+					return "You must provide a valid API key or choose a different provider."
+				}
+				break
 		}
 	}
 	return undefined

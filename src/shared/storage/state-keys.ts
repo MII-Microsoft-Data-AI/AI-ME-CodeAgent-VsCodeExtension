@@ -1,5 +1,5 @@
 import { AutoApprovalSettings } from "@shared/AutoApprovalSettings"
-import { ApiProvider, ModelInfo, type OcaModelInfo } from "@shared/api"
+import { ApiProvider, CodeAgentModelInfo, ModelInfo, type OcaModelInfo } from "@shared/api"
 import { BrowserSettings } from "@shared/BrowserSettings"
 import { ClineRulesToggles } from "@shared/cline-rules"
 import { DictationSettings } from "@shared/DictationSettings"
@@ -109,6 +109,7 @@ export interface Settings {
 	ocaMode: string | undefined
 	hooksEnabled: boolean
 	subagentsEnabled: boolean
+	codeagentBaseUrl: string | undefined
 
 	// Plan mode configurations
 	planModeApiProvider: ApiProvider
@@ -142,6 +143,8 @@ export interface Settings {
 	planModeHuaweiCloudMaasModelInfo: ModelInfo | undefined
 	planModeOcaModelId: string | undefined
 	planModeOcaModelInfo: OcaModelInfo | undefined
+	planModeCodeagentModelId: string | undefined
+	planModeCodeagentModelInfo: CodeAgentModelInfo | undefined
 	// Act mode configurations
 	actModeApiProvider: ApiProvider
 	actModeApiModelId: string | undefined
@@ -194,6 +197,8 @@ export interface Settings {
 	openTelemetryLogBatchSize: number
 	openTelemetryLogBatchTimeout: number
 	openTelemetryLogMaxQueueSize: number
+	actModeCodeagentModelId: string | undefined
+	actModeCodeagentModelInfo: CodeAgentModelInfo | undefined
 }
 
 export interface Secrets {
@@ -235,6 +240,7 @@ export interface Secrets {
 	difyApiKey: string | undefined
 	ocaApiKey: string | undefined
 	ocaRefreshToken: string | undefined
+	codeagentApiKey: string | undefined
 }
 
 export interface LocalState {

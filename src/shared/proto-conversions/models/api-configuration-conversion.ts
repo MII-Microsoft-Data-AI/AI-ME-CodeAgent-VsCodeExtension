@@ -4,6 +4,7 @@ import {
 	OpenRouterModelInfo,
 	ModelsApiConfiguration as ProtoApiConfiguration,
 	ApiProvider as ProtoApiProvider,
+	CodeAgentModelInfo as ProtoCodeAgentModelInfo,
 	OcaModelInfo as ProtoOcaModelInfo,
 	ThinkingConfig,
 } from "@shared/proto/cline/models"
@@ -13,6 +14,7 @@ import {
 	LiteLLMModelInfo as AppLiteLLMModelInfo,
 	OpenAiCompatibleModelInfo as AppOpenAiCompatibleModelInfo,
 	BedrockModelId,
+	CodeAgentModelInfo,
 	ModelInfo,
 	OcaModelInfo,
 } from "../../api"
@@ -131,6 +133,62 @@ function convertProtoOcaModelInfoToOcaModelInfo(info: ProtoOcaModelInfo | undefi
 		surveyId: info.surveyId,
 		banner: info.banner,
 		modelName: info.modelName,
+	}
+}
+
+// Convert application CodeAgentModelInfo to proto CodeAgentModelInfo
+function convertCodeAgentModelInfoToProto(info: CodeAgentModelInfo | undefined): ProtoCodeAgentModelInfo | undefined {
+	if (!info) {
+		return undefined
+	}
+
+	console.log("Converting CodeAgentModelInfo to ProtoCodeAgentModelInfo:", info)
+
+	return {
+		id: info.id,
+		modelId: info.modelId,
+		displayName: info.displayName,
+		endpoint: info.endpoint,
+		apiKey: info.apiKey,
+		deploymentName: info.deploymentName,
+		status: info.status,
+		apiVersion: info.apiVersion,
+		inputTokensPer1m: info.inputTokensPer1m,
+		outputTokensPer1m: info.outputTokensPer1m,
+		cachedInputTokensPer1m: info.cachedInputTokensPer1m,
+		createdAt: info.createdAt,
+		updatedAt: info.updatedAt,
+		description: info.description,
+		supportImage: info.supportImage,
+		maxContextWindow: info.maxContextWindow,
+		maxTokens: info.maxTokens,
+	}
+}
+
+// Convert proto CodeAgentModelInfo to application CodeAgentModelInfo
+function convertProtoToCodeAgentModelInfo(info: ProtoCodeAgentModelInfo | undefined): CodeAgentModelInfo | undefined {
+	if (!info) {
+		return undefined
+	}
+
+	return {
+		id: info.id,
+		modelId: info.modelId,
+		displayName: info.displayName,
+		endpoint: info.endpoint,
+		apiKey: info.apiKey,
+		deploymentName: info.deploymentName,
+		status: info.status as "ACTIVE" | "INACTIVE",
+		apiVersion: info.apiVersion,
+		inputTokensPer1m: info.inputTokensPer1m,
+		outputTokensPer1m: info.outputTokensPer1m,
+		cachedInputTokensPer1m: info.cachedInputTokensPer1m,
+		createdAt: info.createdAt,
+		updatedAt: info.updatedAt,
+		description: info.description,
+		supportImage: info.supportImage,
+		maxContextWindow: info.maxContextWindow,
+		maxTokens: info.maxTokens,
 	}
 }
 
@@ -307,6 +365,8 @@ function convertApiProviderToProto(provider: string | undefined): ProtoApiProvid
 			return ProtoApiProvider.DIFY
 		case "oca":
 			return ProtoApiProvider.OCA
+		case "codeagent":
+			return ProtoApiProvider.CODEAGENT
 		default:
 			return ProtoApiProvider.ANTHROPIC
 	}
@@ -387,6 +447,8 @@ export function convertProtoToApiProvider(provider: ProtoApiProvider): ApiProvid
 			return "dify"
 		case ProtoApiProvider.OCA:
 			return "oca"
+		case ProtoApiProvider.CODEAGENT:
+			return "codeagent"
 		default:
 			return "anthropic"
 	}
@@ -470,6 +532,8 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 		difyBaseUrl: config.difyBaseUrl,
 		ocaBaseUrl: config.ocaBaseUrl,
 		ocaMode: config.ocaMode,
+		codeagentApiKey: config.codeagentApiKey,
+		codeagentBaseUrl: config.codeagentBaseUrl,
 
 		// Plan mode configurations
 		planModeApiProvider: config.planModeApiProvider ? convertApiProviderToProto(config.planModeApiProvider) : undefined,
@@ -505,6 +569,8 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 		planModeVercelAiGatewayModelInfo: convertModelInfoToProtoOpenRouter(config.planModeVercelAiGatewayModelInfo),
 		planModeOcaModelId: config.planModeOcaModelId,
 		planModeOcaModelInfo: convertOcaModelInfoToProtoOcaModelInfo(config.planModeOcaModelInfo),
+		planModeCodeagentModelId: config.planModeCodeagentModelId,
+		planModeCodeagentModelInfo: convertCodeAgentModelInfoToProto(config.planModeCodeagentModelInfo),
 
 		// Act mode configurations
 		actModeApiProvider: config.actModeApiProvider ? convertApiProviderToProto(config.actModeApiProvider) : undefined,
@@ -540,6 +606,8 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 		actModeVercelAiGatewayModelInfo: convertModelInfoToProtoOpenRouter(config.actModeVercelAiGatewayModelInfo),
 		actModeOcaModelId: config.actModeOcaModelId,
 		actModeOcaModelInfo: convertOcaModelInfoToProtoOcaModelInfo(config.actModeOcaModelInfo),
+		actModeCodeagentModelId: config.actModeCodeagentModelId,
+		actModeCodeagentModelInfo: convertCodeAgentModelInfoToProto(config.actModeCodeagentModelInfo),
 	}
 }
 
@@ -621,6 +689,8 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 		difyBaseUrl: protoConfig.difyBaseUrl,
 		ocaBaseUrl: protoConfig.ocaBaseUrl,
 		ocaMode: protoConfig.ocaMode,
+		codeagentApiKey: protoConfig.codeagentApiKey,
+		codeagentBaseUrl: protoConfig.codeagentBaseUrl,
 
 		// Plan mode configurations
 		planModeApiProvider:
@@ -659,6 +729,8 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 		planModeVercelAiGatewayModelInfo: convertProtoToModelInfo(protoConfig.planModeVercelAiGatewayModelInfo),
 		planModeOcaModelId: protoConfig.planModeOcaModelId,
 		planModeOcaModelInfo: convertProtoOcaModelInfoToOcaModelInfo(protoConfig.planModeOcaModelInfo),
+		planModeCodeagentModelId: protoConfig.planModeCodeagentModelId,
+		planModeCodeagentModelInfo: convertProtoToCodeAgentModelInfo(protoConfig.planModeCodeagentModelInfo),
 
 		// Act mode configurations
 		actModeApiProvider:
@@ -695,5 +767,7 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 		actModeVercelAiGatewayModelInfo: convertProtoToModelInfo(protoConfig.actModeVercelAiGatewayModelInfo),
 		actModeOcaModelId: protoConfig.actModeOcaModelId,
 		actModeOcaModelInfo: convertProtoOcaModelInfoToOcaModelInfo(protoConfig.actModeOcaModelInfo),
+		actModeCodeagentModelId: protoConfig.actModeCodeagentModelId,
+		actModeCodeagentModelInfo: convertProtoToCodeAgentModelInfo(protoConfig.actModeCodeagentModelInfo),
 	}
 }

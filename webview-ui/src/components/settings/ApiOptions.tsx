@@ -12,42 +12,7 @@ import { useExtensionState } from "@/context/ExtensionStateContext"
 import { ModelsServiceClient } from "@/services/grpc-client"
 import { highlight } from "../history/HistoryView"
 import { OPENROUTER_MODEL_PICKER_Z_INDEX } from "./OpenRouterModelPicker"
-import { AnthropicProvider } from "./providers/AnthropicProvider"
-import { AskSageProvider } from "./providers/AskSageProvider"
-import { BasetenProvider } from "./providers/BasetenProvider"
-import { BedrockProvider } from "./providers/BedrockProvider"
-import { CerebrasProvider } from "./providers/CerebrasProvider"
-import { ClaudeCodeProvider } from "./providers/ClaudeCodeProvider"
-import { ClineProvider } from "./providers/ClineProvider"
-import { DeepSeekProvider } from "./providers/DeepSeekProvider"
-import { DifyProvider } from "./providers/DifyProvider"
-import { DoubaoProvider } from "./providers/DoubaoProvider"
-import { FireworksProvider } from "./providers/FireworksProvider"
-import { GeminiProvider } from "./providers/GeminiProvider"
-import { GroqProvider } from "./providers/GroqProvider"
-import { HuaweiCloudMaasProvider } from "./providers/HuaweiCloudMaasProvider"
-import { HuggingFaceProvider } from "./providers/HuggingFaceProvider"
-import { LiteLlmProvider } from "./providers/LiteLlmProvider"
-import { LMStudioProvider } from "./providers/LMStudioProvider"
-import { MistralProvider } from "./providers/MistralProvider"
-import { MoonshotProvider } from "./providers/MoonshotProvider"
-import { NebiusProvider } from "./providers/NebiusProvider"
-import { OcaProvider } from "./providers/OcaProvider"
-import { OllamaProvider } from "./providers/OllamaProvider"
-import { OpenAICompatibleProvider } from "./providers/OpenAICompatible"
-import { OpenAINativeProvider } from "./providers/OpenAINative"
-import { OpenRouterProvider } from "./providers/OpenRouterProvider"
-import { QwenCodeProvider } from "./providers/QwenCodeProvider"
-import { QwenProvider } from "./providers/QwenProvider"
-import { RequestyProvider } from "./providers/RequestyProvider"
-import { SambanovaProvider } from "./providers/SambanovaProvider"
-import { SapAiCoreProvider } from "./providers/SapAiCoreProvider"
-import { TogetherProvider } from "./providers/TogetherProvider"
-import { VercelAIGatewayProvider } from "./providers/VercelAIGatewayProvider"
-import { VertexProvider } from "./providers/VertexProvider"
-import { VSCodeLmProvider } from "./providers/VSCodeLmProvider"
-import { XaiProvider } from "./providers/XaiProvider"
-import { ZAiProvider } from "./providers/ZAiProvider"
+import { CodeAgentProvider } from "./providers/CodeAgentProvider"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
 
 interface ApiOptionsProps {
@@ -127,42 +92,43 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 
 	const providerOptions = useMemo(() => {
 		let providers = [
-			{ value: "cline", label: "Cline" },
-			{ value: "openrouter", label: "OpenRouter" },
-			{ value: "gemini", label: "Google Gemini" },
-			{ value: "openai", label: "OpenAI Compatible" },
-			{ value: "anthropic", label: "Anthropic" },
-			{ value: "bedrock", label: "Amazon Bedrock" },
-			{ value: "vscode-lm", label: "VS Code LM API" },
-			{ value: "deepseek", label: "DeepSeek" },
-			{ value: "openai-native", label: "OpenAI" },
-			{ value: "ollama", label: "Ollama" },
-			{ value: "vertex", label: "GCP Vertex AI" },
-			{ value: "litellm", label: "LiteLLM" },
-			{ value: "claude-code", label: "Claude Code" },
-			{ value: "sapaicore", label: "SAP AI Core" },
-			{ value: "mistral", label: "Mistral" },
-			{ value: "zai", label: "Z AI" },
-			{ value: "groq", label: "Groq" },
-			{ value: "cerebras", label: "Cerebras" },
-			{ value: "vercel-ai-gateway", label: "Vercel AI Gateway" },
-			{ value: "baseten", label: "Baseten" },
-			{ value: "requesty", label: "Requesty" },
-			{ value: "fireworks", label: "Fireworks AI" },
-			{ value: "together", label: "Together" },
-			{ value: "qwen", label: "Alibaba Qwen" },
-			{ value: "qwen-code", label: "Qwen Code" },
-			{ value: "doubao", label: "Bytedance Doubao" },
-			{ value: "lmstudio", label: "LM Studio" },
-			{ value: "moonshot", label: "Moonshot" },
-			{ value: "huggingface", label: "Hugging Face" },
-			{ value: "nebius", label: "Nebius AI Studio" },
-			{ value: "asksage", label: "AskSage" },
-			{ value: "xai", label: "xAI" },
-			{ value: "sambanova", label: "SambaNova" },
-			{ value: "huawei-cloud-maas", label: "Huawei Cloud MaaS" },
-			{ value: "dify", label: "Dify.ai" },
-			{ value: "oca", label: "Oracle Code Assist" },
+			// { value: "cline", label: "Cline" },
+			// { value: "openrouter", label: "OpenRouter" },
+			// { value: "gemini", label: "Google Gemini" },
+			// { value: "openai", label: "OpenAI Compatible" },
+			// { value: "anthropic", label: "Anthropic" },
+			// { value: "bedrock", label: "Amazon Bedrock" },
+			// { value: "vscode-lm", label: "VS Code LM API" },
+			// { value: "deepseek", label: "DeepSeek" },
+			// { value: "openai-native", label: "OpenAI" },
+			// { value: "ollama", label: "Ollama" },
+			// { value: "vertex", label: "GCP Vertex AI" },
+			// { value: "litellm", label: "LiteLLM" },
+			// { value: "claude-code", label: "Claude Code" },
+			// { value: "sapaicore", label: "SAP AI Core" },
+			// { value: "mistral", label: "Mistral" },
+			// { value: "zai", label: "Z AI" },
+			// { value: "groq", label: "Groq" },
+			// { value: "cerebras", label: "Cerebras" },
+			// { value: "vercel-ai-gateway", label: "Vercel AI Gateway" },
+			// { value: "baseten", label: "Baseten" },
+			// { value: "requesty", label: "Requesty" },
+			// { value: "fireworks", label: "Fireworks AI" },
+			// { value: "together", label: "Together" },
+			// { value: "qwen", label: "Alibaba Qwen" },
+			// { value: "qwen-code", label: "Qwen Code" },
+			// { value: "doubao", label: "Bytedance Doubao" },
+			// { value: "lmstudio", label: "LM Studio" },
+			// { value: "moonshot", label: "Moonshot" },
+			// { value: "huggingface", label: "Hugging Face" },
+			// { value: "nebius", label: "Nebius AI Studio" },
+			// { value: "asksage", label: "AskSage" },
+			// { value: "xai", label: "xAI" },
+			// { value: "sambanova", label: "SambaNova" },
+			// { value: "huawei-cloud-maas", label: "Huawei Cloud MaaS" },
+			// { value: "dify", label: "Dify.ai" },
+			// { value: "oca", label: "Oracle Code Assist" },
+			{ value: "codeagent", label: "CodeAgent" },
 		]
 
 		if (PLATFORM_CONFIG.type !== PlatformType.VSCODE) {
@@ -368,11 +334,11 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 				</ProviderDropdownWrapper>
 			</DropdownContainer>
 
-			{apiConfiguration && selectedProvider === "cline" && (
+			{/* {apiConfiguration && selectedProvider === "cline" && (
 				<ClineProvider currentMode={currentMode} isPopup={isPopup} showModelOptions={showModelOptions} />
-			)}
+			)} */}
 
-			{apiConfiguration && selectedProvider === "asksage" && (
+			{/* {apiConfiguration && selectedProvider === "asksage" && (
 				<AskSageProvider currentMode={currentMode} isPopup={isPopup} showModelOptions={showModelOptions} />
 			)}
 
@@ -504,7 +470,11 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 				<ZAiProvider currentMode={currentMode} isPopup={isPopup} showModelOptions={showModelOptions} />
 			)}
 
-			{apiConfiguration && selectedProvider === "oca" && <OcaProvider currentMode={currentMode} isPopup={isPopup} />}
+			{apiConfiguration && selectedProvider === "oca" && <OcaProvider currentMode={currentMode} isPopup={isPopup} />}  */}
+
+			{apiConfiguration && selectedProvider === "codeagent" && (
+				<CodeAgentProvider currentMode={currentMode} isPopup={isPopup} showModelOptions={showModelOptions} />
+			)}
 
 			{apiErrorMessage && (
 				<p

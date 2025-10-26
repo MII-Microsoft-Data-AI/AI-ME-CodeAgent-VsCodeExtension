@@ -8,7 +8,7 @@ import { DEFAULT_FOCUS_CHAIN_SETTINGS } from "@shared/FocusChainSettings"
 import { DEFAULT_MCP_DISPLAY_MODE } from "@shared/McpDisplayMode"
 import type { UserInfo } from "@shared/proto/cline/account"
 import { EmptyRequest } from "@shared/proto/cline/common"
-import type { OpenRouterCompatibleModelInfo } from "@shared/proto/cline/models"
+import type { CodeAgentCompatibleModelInfo, OpenRouterCompatibleModelInfo } from "@shared/proto/cline/models"
 import { type TerminalProfile } from "@shared/proto/cline/state"
 import { convertProtoToClineMessage } from "@shared/proto-conversions/cline-message"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
@@ -19,6 +19,7 @@ import { Environment } from "../../../src/config"
 import {
 	basetenDefaultModelId,
 	basetenModels,
+	type CodeAgentModel,
 	groqDefaultModelId,
 	groqModels,
 	type ModelInfo,
@@ -40,6 +41,9 @@ export interface ExtensionStateContextType extends ExtensionState {
 	requestyModels: Record<string, ModelInfo>
 	groqModels: Record<string, ModelInfo>
 	basetenModels: Record<string, ModelInfo>
+	codeagentModels: Record<string, CodeAgentModel>
+	codeagentActModelId?: string
+	codeagentPlanModelId?: string
 	huggingFaceModels: Record<string, ModelInfo>
 	vercelAiGatewayModels: Record<string, ModelInfo>
 	mcpServers: McpServer[]
@@ -69,6 +73,9 @@ export interface ExtensionStateContextType extends ExtensionState {
 	setRequestyModels: (value: Record<string, ModelInfo>) => void
 	setGroqModels: (value: Record<string, ModelInfo>) => void
 	setBasetenModels: (value: Record<string, ModelInfo>) => void
+	setCodeAgentModels: (value: Record<string, CodeAgentModel>) => void
+	setCodeAgentActModelId: (modelId: string | undefined) => void
+	setCodeAgentPlanModelId: (modelId: string | undefined) => void
 	setHuggingFaceModels: (value: Record<string, ModelInfo>) => void
 	setVercelAiGatewayModels: (value: Record<string, ModelInfo>) => void
 	setGlobalClineRulesToggles: (toggles: Record<string, boolean>) => void
@@ -83,6 +90,7 @@ export interface ExtensionStateContextType extends ExtensionState {
 
 	// Refresh functions
 	refreshOpenRouterModels: () => void
+	refreshCodeAgentModels: () => void
 	setUserInfo: (userInfo?: UserInfo) => void
 
 	// Navigation state setters
@@ -252,6 +260,9 @@ export const ExtensionStateContextProvider: React.FC<{
 	const [basetenModelsState, setBasetenModels] = useState<Record<string, ModelInfo>>({
 		[basetenDefaultModelId]: basetenModels[basetenDefaultModelId],
 	})
+	const [codeagentModels, setCodeAgentModels] = useState<Record<string, CodeAgentModel>>({})
+	const [codeAgentPlanModelId, setCodeAgentPlanModelId] = useState<string | undefined>(undefined)
+	const [codeAgentActModelId, setCodeAgentActModelId] = useState<string | undefined>(undefined)
 	const [huggingFaceModels, setHuggingFaceModels] = useState<Record<string, ModelInfo>>({})
 	const [vercelAiGatewayModels, setVercelAiGatewayModels] = useState<Record<string, ModelInfo>>({
 		[vercelAiGatewayDefaultModelId]: vercelAiGatewayDefaultModelInfo,
@@ -272,6 +283,7 @@ export const ExtensionStateContextProvider: React.FC<{
 	const partialMessageUnsubscribeRef = useRef<(() => void) | null>(null)
 	const mcpMarketplaceUnsubscribeRef = useRef<(() => void) | null>(null)
 	const openRouterModelsUnsubscribeRef = useRef<(() => void) | null>(null)
+	const codeagentModelsUnsubscribeRef = useRef<(() => void) | null>(null)
 	const workspaceUpdatesUnsubscribeRef = useRef<(() => void) | null>(null)
 	const relinquishControlUnsubscribeRef = useRef<(() => void) | null>(null)
 
@@ -496,6 +508,20 @@ export const ExtensionStateContextProvider: React.FC<{
 			},
 		})
 
+		// Subscribe to CodeAgent models updates
+		codeagentModelsUnsubscribeRef.current = ModelsServiceClient.subscribeToCodeAgentModels(EmptyRequest.create({}), {
+			onResponse: (response: CodeAgentCompatibleModelInfo) => {
+				console.log("[DEBUG] Received CodeAgent models update from gRPC stream")
+				setCodeAgentModels((response.models as unknown as Record<string, CodeAgentModel>) || {})
+			},
+			onError: (error) => {
+				console.error("Error in CodeAgent models subscription:", error)
+			},
+			onComplete: () => {
+				console.log("CodeAgent models subscription completed")
+			},
+		})
+
 		// Initialize webview using gRPC
 		UiServiceClient.initializeWebview(EmptyRequest.create({}))
 			.then(() => {
@@ -596,6 +622,10 @@ export const ExtensionStateContextProvider: React.FC<{
 				openRouterModelsUnsubscribeRef.current()
 				openRouterModelsUnsubscribeRef.current = null
 			}
+			if (codeagentModelsUnsubscribeRef.current) {
+				codeagentModelsUnsubscribeRef.current()
+				codeagentModelsUnsubscribeRef.current = null
+			}
 			if (workspaceUpdatesUnsubscribeRef.current) {
 				workspaceUpdatesUnsubscribeRef.current()
 				workspaceUpdatesUnsubscribeRef.current = null
@@ -631,6 +661,15 @@ export const ExtensionStateContextProvider: React.FC<{
 			.catch((error: Error) => console.error("Failed to refresh OpenRouter models:", error))
 	}, [])
 
+	const refreshCodeAgentModels = useCallback(() => {
+		ModelsServiceClient.refreshCodeAgentModels(EmptyRequest.create({}))
+			.then((response: CodeAgentCompatibleModelInfo) => {
+				// Cast the response to CodeAgentModel records (backend returns CodeAgent-specific data)
+				setCodeAgentModels((response.models as unknown as Record<string, CodeAgentModel>) || {})
+			})
+			.catch((error: Error) => console.error("Failed to refresh CodeAgent models:", error))
+	}, [])
+
 	const contextValue: ExtensionStateContextType = {
 		...state,
 		didHydrateState,
@@ -640,6 +679,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		requestyModels,
 		groqModels: groqModelsState,
 		basetenModels: basetenModelsState,
+		codeagentModels,
 		huggingFaceModels,
 		vercelAiGatewayModels,
 		mcpServers,
@@ -686,6 +726,9 @@ export const ExtensionStateContextProvider: React.FC<{
 		setRequestyModels: (models: Record<string, ModelInfo>) => setRequestyModels(models),
 		setGroqModels: (models: Record<string, ModelInfo>) => setGroqModels(models),
 		setBasetenModels: (models: Record<string, ModelInfo>) => setBasetenModels(models),
+		setCodeAgentModels: (models: Record<string, CodeAgentModel>) => setCodeAgentModels(models),
+		setCodeAgentPlanModelId: (modelId: string | undefined) => setCodeAgentPlanModelId(modelId),
+		setCodeAgentActModelId: (modelId: string | undefined) => setCodeAgentActModelId(modelId),
 		setHuggingFaceModels: (models: Record<string, ModelInfo>) => setHuggingFaceModels(models),
 		setVercelAiGatewayModels: (models: Record<string, ModelInfo>) => setVercelAiGatewayModels(models),
 		setMcpMarketplaceCatalog: (catalog: McpMarketplaceCatalog) => setMcpMarketplaceCatalog(catalog),
@@ -724,6 +767,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		setMcpTab,
 		setTotalTasksSize,
 		refreshOpenRouterModels,
+		refreshCodeAgentModels,
 		onRelinquishControl,
 		setUserInfo: (userInfo?: UserInfo) => setState((prevState) => ({ ...prevState, userInfo })),
 		expandTaskHeader,

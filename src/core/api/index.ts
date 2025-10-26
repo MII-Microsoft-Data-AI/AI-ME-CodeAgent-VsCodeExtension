@@ -8,6 +8,7 @@ import { AwsBedrockHandler } from "./providers/bedrock"
 import { CerebrasHandler } from "./providers/cerebras"
 import { ClaudeCodeHandler } from "./providers/claude-code"
 import { ClineHandler } from "./providers/cline"
+import { CodeAgentHandler } from "./providers/codeagent"
 import { DeepSeekHandler } from "./providers/deepseek"
 import { DifyHandler } from "./providers/dify"
 import { DoubaoHandler } from "./providers/doubao"
@@ -388,6 +389,14 @@ function createHandlerForProvider(
 						? options.planModeOcaModelInfo?.supportsPromptCache
 						: options.actModeOcaModelInfo?.supportsPromptCache,
 				taskId: options.ulid,
+			})
+		case "codeagent":
+			return new CodeAgentHandler({
+				onRetryAttempt: options.onRetryAttempt,
+				codeagentApiKey: options.codeagentApiKey,
+				codeagentBaseUrl: options.codeagentBaseUrl,
+				codeagentModelId: mode === "plan" ? options.planModeCodeagentModelId : options.actModeCodeagentModelId,
+				codeagentModelInfo: mode === "plan" ? options.planModeCodeagentModelInfo : options.actModeCodeagentModelInfo,
 			})
 		default:
 			return new AnthropicHandler({

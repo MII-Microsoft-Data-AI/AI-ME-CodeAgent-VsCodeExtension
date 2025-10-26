@@ -19,17 +19,36 @@ export const useApiConfigurationHandlers = () => {
 	 * @param value - The new value for the field
 	 */
 	const handleFieldChange = async <K extends keyof ApiConfiguration>(field: K, value: ApiConfiguration[K]) => {
-		const updatedConfig = {
-			...apiConfiguration,
-			[field]: value,
-		}
+		try {
+			console.log(`[handleFieldChange] Updating field: ${String(field)} with value:`, value)
+			const updatedConfig = {
+				...apiConfiguration,
+				[field]: value,
+			}
 
-		const protoConfig = convertApiConfigurationToProto(updatedConfig)
-		await ModelsServiceClient.updateApiConfigurationProto(
-			UpdateApiConfigurationRequest.create({
+			console.log(`[handleFieldChange] Updated config fields: ${Object.keys(updatedConfig).length}`)
+			console.log(`[handleFieldChange] codeagentBaseUrl in updatedConfig:`, (updatedConfig as any).codeagentBaseUrl)
+			console.log(`[handleFieldChange] codeagentApiKey in updatedConfig:`, (updatedConfig as any).codeagentApiKey)
+
+			const protoConfig = convertApiConfigurationToProto(updatedConfig)
+			console.log(
+				`[handleFieldChange] Proto config created, codeagentApiKey:`,
+				(protoConfig as any).codeagentApiKey,
+				"codeagentBaseUrl:",
+				(protoConfig as any).codeagentBaseUrl,
+			)
+
+			const request = UpdateApiConfigurationRequest.create({
 				apiConfiguration: protoConfig,
-			}),
-		)
+			})
+			console.log(`[handleFieldChange] Request created:`, request)
+
+			await ModelsServiceClient.updateApiConfigurationProto(request)
+			console.log(`[handleFieldChange] Update sent successfully for field: ${String(field)}`)
+		} catch (error) {
+			console.error(`[handleFieldChange] Error updating field ${String(field)}:`, error)
+			throw error
+		}
 	}
 
 	/**

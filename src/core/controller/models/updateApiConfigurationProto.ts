@@ -2,6 +2,7 @@ import { Empty } from "@shared/proto/cline/common"
 import { UpdateApiConfigurationRequest } from "@shared/proto/cline/models"
 import { convertProtoToApiProvider } from "@shared/proto-conversions/models/api-configuration-conversion"
 import {
+	fromProtobufCodeAgentModelInfo,
 	fromProtobufLiteLLMModelInfo,
 	fromProtobufModelInfo,
 	fromProtobufOcaModelInfo,
@@ -21,6 +22,7 @@ export async function updateApiConfigurationProto(
 	request: UpdateApiConfigurationRequest,
 ): Promise<Empty> {
 	try {
+		console.log("[updateApiConfigurationProto] Starting update")
 		if (!request.apiConfiguration) {
 			console.log("[APICONFIG: updateApiConfigurationProto] API configuration is required")
 			throw new Error("API configuration is required")
@@ -104,6 +106,9 @@ export async function updateApiConfigurationProto(
 			actModeOcaModelInfo: protoApiConfiguration.actModeOcaModelInfo
 				? fromProtobufOcaModelInfo(protoApiConfiguration.actModeOcaModelInfo)
 				: undefined,
+			actModeCodeagentModelInfo: protoApiConfiguration.actModeCodeagentModelInfo
+				? fromProtobufCodeAgentModelInfo(protoApiConfiguration.actModeCodeagentModelInfo)
+				: undefined,
 		}
 
 		// Update the API configuration in storage
@@ -120,6 +125,7 @@ export async function updateApiConfigurationProto(
 
 		// Post updated state to webview
 		await controller.postStateToWebview()
+		console.log("[updateApiConfigurationProto] Update complete")
 
 		return Empty.create()
 	} catch (error) {

@@ -286,6 +286,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			showChatModelSelector: showModelSelector,
 			setShowChatModelSelector: setShowModelSelector,
 			dictationSettings,
+			codeagentModels,
 		} = useExtensionState()
 		const { clineUser } = useClineAuth()
 		const [isTextAreaFocused, setIsTextAreaFocused] = useState(false)
@@ -1178,6 +1179,12 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					return `${selectedProvider}:${liteLlmModelId}`
 				case "requesty":
 					return `${selectedProvider}:${requestyModelId}`
+				case "codeagent":
+					try {
+						return `${selectedProvider}:${codeagentModels[selectedModelId].displayName ?? selectedModelId}`
+					} catch {
+						return `${selectedProvider}:${selectedModelId}`
+					}
 				case "anthropic":
 				case "openrouter":
 				default:

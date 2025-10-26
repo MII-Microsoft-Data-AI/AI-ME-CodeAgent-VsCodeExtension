@@ -37,6 +37,7 @@ export type ApiProvider =
 	| "vercel-ai-gateway"
 	| "zai"
 	| "oca"
+	| "codeagent"
 
 export interface ApiHandlerSecrets {
 	apiKey?: string // anthropic
@@ -75,6 +76,7 @@ export interface ApiHandlerSecrets {
 	basetenApiKey?: string
 	vercelAiGatewayApiKey?: string
 	difyApiKey?: string
+	codeagentApiKey?: string
 }
 
 export interface ApiHandlerOptions {
@@ -121,6 +123,7 @@ export interface ApiHandlerOptions {
 	onRetryAttempt?: (attempt: number, maxRetries: number, delay: number, error: any) => void
 	ocaBaseUrl?: string
 	ocaMode?: string
+	codeagentBaseUrl?: string
 
 	// Plan mode configurations
 	planModeApiModelId?: string
@@ -155,6 +158,8 @@ export interface ApiHandlerOptions {
 	planModeVercelAiGatewayModelInfo?: ModelInfo
 	planModeOcaModelId?: string
 	planModeOcaModelInfo?: OcaModelInfo
+	planModeCodeagentModelId?: string
+	planModeCodeagentModelInfo?: CodeAgentModelInfo
 	// Act mode configurations
 
 	// Act mode configurations
@@ -190,6 +195,8 @@ export interface ApiHandlerOptions {
 	actModeVercelAiGatewayModelInfo?: ModelInfo
 	actModeOcaModelId?: string
 	actModeOcaModelInfo?: OcaModelInfo
+	actModeCodeagentModelId?: string
+	actModeCodeagentModelInfo?: CodeAgentModelInfo
 }
 
 export type ApiConfiguration = ApiHandlerOptions &
@@ -240,6 +247,48 @@ export interface OcaModelInfo extends OpenAiCompatibleModelInfo {
 	surveyId?: string
 	banner?: string
 	surveyContent?: string
+}
+
+export interface CodeAgentModelInfo {
+	id: string // CosmosDB required field (same as modelId)
+	modelId: string
+	displayName: string
+	endpoint: string
+	apiKey?: string // Encrypted
+	deploymentName: string
+	status: string
+	apiVersion: string
+	inputTokensPer1m: number
+	outputTokensPer1m: number
+	cachedInputTokensPer1m: number
+	createdAt: string
+	updatedAt: string
+	supportImage: boolean
+	description: string
+	maxTokens: number
+	maxContextWindow: number
+}
+
+export interface CodeAgentModel {
+	id: string // CosmosDB required field (same as modelId)
+	modelId: string
+	displayName: string
+	endpoint: string
+	apiKey?: string // Encrypted
+	deploymentName: string
+	status: "ACTIVE" | "INACTIVE"
+	apiVersion: string
+	pricing: {
+		inputTokensPer1m: number
+		outputTokensPer1m: number
+		cachedInputTokensPer1m: number
+	}
+	createdAt: string
+	updatedAt: string
+	description: string
+	supportImage: boolean
+	maxTokens: number
+	maxContextWindow: number
 }
 
 export const CLAUDE_SONNET_1M_SUFFIX = ":1m"

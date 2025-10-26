@@ -1,6 +1,7 @@
-import { LiteLLMModelInfo, ModelInfo, OcaModelInfo, OpenAiCompatibleModelInfo } from "@shared/api"
+import { CodeAgentModelInfo, LiteLLMModelInfo, ModelInfo, OcaModelInfo, OpenAiCompatibleModelInfo } from "@shared/api"
 import {
 	OpenRouterModelInfo,
+	CodeAgentModelInfo as ProtoCodeAgentModelInfo,
 	LiteLLMModelInfo as ProtoLiteLLMModelInfo,
 	OcaModelInfo as ProtoOcaModelInfo,
 	OpenAiCompatibleModelInfo as ProtoOpenAiCompatibleModelInfo,
@@ -142,6 +143,31 @@ export function fromProtobufOcaModelInfo(protoInfo: ProtoOcaModelInfo): OcaModel
 		surveyId: protoInfo.surveyId,
 		banner: protoInfo.banner,
 		surveyContent: protoInfo.surveyContent,
+	}
+}
+
+/**
+ * Convert protobuf CodeAgentModelInfo to application CodeAgentModelInfo
+ */
+export function fromProtobufCodeAgentModelInfo(protoInfo: ProtoCodeAgentModelInfo): CodeAgentModelInfo {
+	return {
+		id: protoInfo.id,
+		modelId: protoInfo.modelId,
+		displayName: protoInfo.displayName,
+		endpoint: protoInfo.endpoint,
+		apiKey: protoInfo.apiKey,
+		deploymentName: protoInfo.deploymentName,
+		status: protoInfo.status,
+		apiVersion: protoInfo.apiVersion,
+		inputTokensPer1m: protoInfo.inputTokensPer1m,
+		outputTokensPer1m: protoInfo.outputTokensPer1m,
+		cachedInputTokensPer1m: protoInfo.cachedInputTokensPer1m,
+		createdAt: protoInfo.createdAt,
+		updatedAt: protoInfo.updatedAt,
+		supportImage: protoInfo.supportImage,
+		description: protoInfo.description,
+		maxTokens: protoInfo.maxTokens,
+		maxContextWindow: protoInfo.maxContextWindow,
 	}
 }
 

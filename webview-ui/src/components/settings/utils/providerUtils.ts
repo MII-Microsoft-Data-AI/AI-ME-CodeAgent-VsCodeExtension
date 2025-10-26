@@ -357,8 +357,39 @@ export function normalizeApiConfiguration(
 				selectedModelId: ocaModelId || "",
 				selectedModelInfo: ocaModelInfo || liteLlmModelInfoSaneDefaults,
 			}
+		case "codeagent":
+			const codeagentModelId =
+				currentMode === "plan" ? apiConfiguration?.planModeCodeagentModelId : apiConfiguration?.actModeCodeagentModelId
+			const codeagentModelInfo =
+				currentMode === "plan"
+					? apiConfiguration?.planModeCodeagentModelInfo
+					: apiConfiguration?.actModeCodeagentModelInfo
+			return {
+				selectedProvider: provider,
+				selectedModelId: codeagentModelId || "",
+				selectedModelInfo: {
+					description: codeagentModelInfo?.displayName || "CodeAgent model",
+					supportsPromptCache: true,
+					cacheReadsPrice: codeagentModelInfo?.cachedInputTokensPer1m,
+					inputPrice: codeagentModelInfo?.inputTokensPer1m,
+					outputPrice: codeagentModelInfo?.outputTokensPer1m,
+					supportsImages: codeagentModelInfo?.supportImage || false,
+				},
+			}
 		default:
-			return getProviderData(anthropicModels, anthropicDefaultModelId)
+			return {
+				selectedProvider: "codeagent",
+				selectedModelId: codeagentModelId || "",
+				selectedModelInfo: {
+					description: codeagentModelInfo?.displayName || "CodeAgent model",
+					supportsPromptCache: true,
+					cacheReadsPrice: codeagentModelInfo?.cachedInputTokensPer1m,
+					inputPrice: codeagentModelInfo?.inputTokensPer1m,
+					outputPrice: codeagentModelInfo?.outputTokensPer1m,
+					supportsImages: codeagentModelInfo?.supportImage || false,
+				},
+			}
+		// return getProviderData(anthropicModels, anthropicDefaultModelId)
 	}
 }
 
@@ -386,6 +417,7 @@ export function getModeSpecificFields(apiConfiguration: ApiConfiguration | undef
 			openRouterModelId: undefined,
 			groqModelId: undefined,
 			basetenModelId: undefined,
+			codeagentModelId: undefined,
 			huggingFaceModelId: undefined,
 			huaweiCloudMaasModelId: undefined,
 			vercelAiGatewayModelId: undefined,
@@ -397,6 +429,7 @@ export function getModeSpecificFields(apiConfiguration: ApiConfiguration | undef
 			requestyModelInfo: undefined,
 			groqModelInfo: undefined,
 			basetenModelInfo: undefined,
+			codeagentModelInfo: undefined,
 			huggingFaceModelInfo: undefined,
 			vercelAiGatewayModelInfo: undefined,
 			vsCodeLmModelSelector: undefined,
@@ -431,6 +464,7 @@ export function getModeSpecificFields(apiConfiguration: ApiConfiguration | undef
 			mode === "plan" ? apiConfiguration.planModeOpenRouterModelId : apiConfiguration.actModeOpenRouterModelId,
 		groqModelId: mode === "plan" ? apiConfiguration.planModeGroqModelId : apiConfiguration.actModeGroqModelId,
 		basetenModelId: mode === "plan" ? apiConfiguration.planModeBasetenModelId : apiConfiguration.actModeBasetenModelId,
+		codeagentModelId: mode === "plan" ? apiConfiguration.planModeCodeagentModelId : apiConfiguration.actModeCodeagentModelId,
 		huggingFaceModelId:
 			mode === "plan" ? apiConfiguration.planModeHuggingFaceModelId : apiConfiguration.actModeHuggingFaceModelId,
 		huaweiCloudMaasModelId:
@@ -448,6 +482,8 @@ export function getModeSpecificFields(apiConfiguration: ApiConfiguration | undef
 			mode === "plan" ? apiConfiguration.planModeRequestyModelInfo : apiConfiguration.actModeRequestyModelInfo,
 		groqModelInfo: mode === "plan" ? apiConfiguration.planModeGroqModelInfo : apiConfiguration.actModeGroqModelInfo,
 		basetenModelInfo: mode === "plan" ? apiConfiguration.planModeBasetenModelInfo : apiConfiguration.actModeBasetenModelInfo,
+		codeagentModelInfo:
+			mode === "plan" ? apiConfiguration.planModeCodeagentModelInfo : apiConfiguration.actModeCodeagentModelInfo,
 		huggingFaceModelInfo:
 			mode === "plan" ? apiConfiguration.planModeHuggingFaceModelInfo : apiConfiguration.actModeHuggingFaceModelInfo,
 		vercelAiGatewayModelInfo:
